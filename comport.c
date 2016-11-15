@@ -4,7 +4,6 @@
 #include <avr/interrupt.h>
 #include <util/setbaud.h>
 #include <assert.h>
-#include <stdlib.h>
 
 /****************************************************************************
  * Private types/enumerations/variables                                     *
@@ -66,7 +65,7 @@ static uint8_t _getchar(void)
   sei();
   if (rx_counter == 0)
   {
-	  ComportIsDataToParse = false;
+    ComportIsDataToParse = false;
   }
   return data;
 }
@@ -120,7 +119,7 @@ static void send()
 
 ISR(USART_TX_vect)
 {
-  if (tx_counter)
+	if (tx_counter)
   {
     --tx_counter;
     UDR0 = tx_buffer[tx_rd_index++];
@@ -148,14 +147,14 @@ ISR(USART_RX_vect)
       rx_counter = 0;
       rx_buffer_overflow = true;
     }
-	  if (rx_counter > 0)
-	  {
+    if (rx_counter > 0)
+    {
       ComportIsDataToParse = true;
-	  }
-	  else
-	  {
-		  ComportIsDataToParse = false;
-	  }	  
+    }
+    else
+    {
+      ComportIsDataToParse = false;
+    }    
   }
 }
 
@@ -183,6 +182,19 @@ void ComportSetup(ParserHandler handler)
   received_data_index = 0;
 }
 
+void ComportDebug(char ch)
+{
+  _putchar(ch);
+}
+
+void ComportDebugString(char *str)
+{
+  while(*str != '\0')
+  {
+    _putchar(*str++);
+  }
+}
+
 void ComportParse(void)
 {
   uint8_t rec_byte, check_crc;
@@ -193,7 +205,7 @@ void ComportParse(void)
   {
     received_packet.end = rec_byte;
     received_packet.len = received_data_index;
-	  packet_received = true;
+    packet_received = true;
     received_part_index = LSMOD_PACKET_HEADER_INDEX;
   }
   if (received_part_index == LSMOD_PACKET_DATA_INDEX)
@@ -242,17 +254,17 @@ void ComportParse(void)
     {
       if (LSMOD_PACKET_MSK == received_packet.data[i])
       {
-		    assert(i < (received_packet.len - 1));
+        assert(i < (received_packet.len - 1));
         received_packet.data[i] = 0xFF - received_packet.data[i + 1];
         for (j = (i + 1); j < (received_packet.len - 1); j++)
         {
           received_packet.data[j] = received_packet.data[j + 1];
         }
-		    received_packet.len--;
+        received_packet.len--;
       }
     }
     received_packet.crc = received_packet.data[received_packet.len - 1];
-	  received_packet.len--;
+    received_packet.len--;
     check_crc = 0;
     check_crc += received_packet.header;
     check_crc += received_packet.to;
@@ -277,7 +289,7 @@ void ComportParse(void)
 
 void ComportReplyError(uint8_t cmd)
 {
-	transmitted_packet.to = received_packet.from;
+  transmitted_packet.to = received_packet.from;
   transmitted_packet.cmd = LSMOD_REPLY_ERROR;
   transmitted_packet.data[0] = cmd;
   transmitted_packet.len = 1;
@@ -287,7 +299,7 @@ void ComportReplyError(uint8_t cmd)
 
 void ComportReplyAck(uint8_t cmd)
 {
-	transmitted_packet.to = received_packet.from;
+  transmitted_packet.to = received_packet.from;
   transmitted_packet.cmd = LSMOD_REPLY_ACK;
   transmitted_packet.data[0] = cmd;
   transmitted_packet.len = 1;
@@ -297,7 +309,7 @@ void ComportReplyAck(uint8_t cmd)
 
 void ComportReplyLoaded(void)
 {
-	transmitted_packet.to = received_packet.from;
+  transmitted_packet.to = received_packet.from;
   transmitted_packet.cmd = LSMOD_REPLY_LOADED;
   transmitted_packet.data[0] = LSMOD_CONTROL_LOAD;
   transmitted_packet.len = 1;
@@ -306,7 +318,7 @@ void ComportReplyLoaded(void)
 
 void ComportReplyStat(uint8_t stat)
 {
-	transmitted_packet.to = received_packet.from;
+  transmitted_packet.to = received_packet.from;
   transmitted_packet.cmd = LSMOD_REPLY_STAT;
   transmitted_packet.data[0] = stat;
   transmitted_packet.len = 1;
@@ -315,13 +327,13 @@ void ComportReplyStat(uint8_t stat)
 
 void ComportReplyData(uint8_t* data, uint16_t len)
 {
-	uint16_t i;
-	
-	transmitted_packet.to = received_packet.from;
+  uint16_t i;
+  
+  transmitted_packet.to = received_packet.from;
   transmitted_packet.cmd = LSMOD_REPLY_STAT;
   for (i = 0; i < len; i++)
   {
-	  transmitted_packet.data[i] = *(data + i);
+    transmitted_packet.data[i] = *(data + i);
   }
   transmitted_packet.len = len;
   send();

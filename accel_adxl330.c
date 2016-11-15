@@ -31,7 +31,7 @@ static void readyX(void)
 {
   if (*rawX > ADXL330_THRESHOLD)
   {
-	  Adxl330_MotionDetected = true;
+    Adxl330_MotionDetected = true;
   }
 }
 
@@ -39,7 +39,7 @@ static void readyY(void)
 {
   if (*rawY > ADXL330_THRESHOLD)
   {
-	  Adxl330_MotionDetected = true;
+    Adxl330_MotionDetected = true;
   }
 }
 
@@ -47,7 +47,7 @@ static void readyZ(void)
 {
   if (*rawZ > ADXL330_THRESHOLD)
   {
-	  Adxl330_MotionDetected = true;
+    Adxl330_MotionDetected = true;
   }
 }
 

@@ -6,13 +6,14 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#include "debug.h"
+
 /****************************************************************************
  * Private types/enumerations/variables                                     *
  ****************************************************************************/
 
-static uint8_t Tx_Buf[DB321_BUFFER_SIZE];
-static uint8_t Rx_Buf[DB321_BUFFER_SIZE];
-static uint16_t Tx_Len, Rx_Len;
+static uint8_t buffer[DB321_BUFFER_SIZE];
+static uint16_t txLen, rxLen;
 
 static DataflashCommonCallback DataflashOperationFinishCallback = NULL;
 
@@ -23,19 +24,12 @@ static bool dataflashEraseManual = false;
 static DataflashCommonCallback DataflashWriteLastWaitFunction = NULL;
 static DataflashCommonCallback DataflashEraseLastManualWaitFunction = NULL;
 
-static uint32_t dataSource = 0;
-static uint32_t dataDest = 0;
+static uint8_t* dataSource = NULL;
+static uint8_t* dataDest = NULL;
+static uint32_t dataflashDest = 0;
 static uint32_t dataBytes = 0;
 static uint32_t dataBytesLeft = 0;
 static uint32_t dataPageAddress = 0;
-
-#if defined(DB321_INCLUDE_FLASH_TEST)
-  #define TEST_SIZE 131072  // 128 KB
-  #define TEST_START_ADDRESS 0x3FFFFF  // Flash tail
-  static volatile uint32_t dataflashTestAddressShift = 0;
-  static volatile bool dataflashTestInProgress = false;
-  static DataflashCommonCallback DataflashTestAgainFunction = NULL;
-#endif
 
 /****************************************************************************
  * Public types/enumerations/variables                                      *
@@ -48,16 +42,18 @@ static uint32_t dataPageAddress = 0;
 static void bufferInit(void)
 {
   uint16_t i;
+
   for (i = 0; i < DB321_BUFFER_SIZE; i++)
   {
-    Tx_Buf[i] = 0x00;
-    Rx_Buf[i] = 0x00;
+    buffer[i] = 0x00;
   }
+  txLen = 0;
+  rxLen = 0;
 }
 
 static void DataflashDummyCallback(void)
 {
-	
+  
 }
 
 static void DataflashOperationFinish(void)
@@ -68,15 +64,15 @@ static void DataflashOperationFinish(void)
 
 static void DataflashCheckID(void)
 {
-  Tx_Buf[0] = DB321_GET_ID;
-  Tx_Len = 1;
-  Rx_Len = 4;
-  SPI_ReadWrite(Tx_Buf, Rx_Buf, Tx_Len, Rx_Len, NULL);
-  while (!SPI_TransferCompleted) {}   
-  if((Rx_Buf[1] == 0x1F) &&
-     ((Rx_Buf[2] & 0xE0) == 0x20) &&
-     (Rx_Buf[3] == 1)  &&
-     (Rx_Buf[4] == 0))
+  buffer[0] = DB321_GET_ID;
+  txLen = 1;
+  rxLen = 4;
+  SPI_ReadWrite(buffer, txLen, rxLen, NULL);
+  while (!SPI_TransferCompleted) {}
+  if((buffer[1] == 0x1F) &&
+     ((buffer[2] & 0xE0) == 0x20) &&
+     (buffer[3] == 1)  &&
+     (buffer[4] == 0))
   {
     dataflashInitialized = true;
   }
@@ -88,15 +84,15 @@ static void DataflashCheckID(void)
 
 static void DataflashReadContinue(void)
 {
-  memcpy((uint8_t *)dataDest, &Rx_Buf[8], dataBytes);
+  memcpy(dataDest, &buffer[8], dataBytes);
   dataDest += dataBytes;
   if(dataBytesLeft > 0)
   {
     bufferInit();
-    Tx_Buf[0] = DB321_PAGE_READ;
-    Tx_Buf[1] = (uint8_t)((dataPageAddress >> 6) & 0x7F);
-    Tx_Buf[2] = (uint8_t)((dataPageAddress << 2) & 0xFC);
-    Tx_Buf[3] = 0x00;
+    buffer[0] = DB321_PAGE_READ;
+    buffer[1] = (uint8_t)((dataPageAddress >> 6) & 0x7F);
+    buffer[2] = (uint8_t)((dataPageAddress << 2) & 0xFC);
+    buffer[3] = 0x00;
     if(dataBytesLeft >= DB321_PAGE_SIZE)
     {
       dataBytes = DB321_PAGE_SIZE;
@@ -108,9 +104,9 @@ static void DataflashReadContinue(void)
       dataBytes = dataBytesLeft;
       dataBytesLeft = 0;
     }
-    Tx_Len = 8;
-    Rx_Len = dataBytes;
-    SPI_ReadWrite(Tx_Buf, Rx_Buf, Tx_Len, Rx_Len, DataflashReadContinue);
+    txLen = 8;
+    rxLen = dataBytes;
+    SPI_ReadWrite(buffer, txLen, rxLen, DataflashReadContinue);
   }
   else
   {
@@ -118,7 +114,7 @@ static void DataflashReadContinue(void)
   }
 }
 
-static void DataflashReadStart(uint32_t src, uint32_t dst, uint32_t size)
+static void DataflashReadStart(uint32_t src, uint8_t* dst, uint32_t size)
 {
   uint16_t dataBytesCount;
   uint16_t pageAddress;
@@ -131,37 +127,37 @@ static void DataflashReadStart(uint32_t src, uint32_t dst, uint32_t size)
   }
   else
   {
-    dataBytesCount = size;    
+    dataBytesCount = size;
   }
   bufferInit();
-  Tx_Buf[0] = DB321_PAGE_READ;
-  Tx_Buf[1] = (uint8_t)((pageAddress >> 6) & 0x7F);
-  Tx_Buf[2] = (uint8_t)((pageAddress << 2) & 0xFC) | (uint8_t)((byteAddress >> 8) & 0x03);
-  Tx_Buf[3] = (uint8_t)(byteAddress & 0xFF);
-  Tx_Buf[4] = 0xFF;
-  Tx_Buf[5] = 0xFF;
-  Tx_Buf[6] = 0xFF;
-  Tx_Buf[7] = 0xFF;
+  buffer[0] = DB321_PAGE_READ;
+  buffer[1] = (uint8_t)((pageAddress >> 6) & 0x7F);
+  buffer[2] = (uint8_t)((pageAddress << 2) & 0xFC) | (uint8_t)((byteAddress >> 8) & 0x03);
+  buffer[3] = (uint8_t)(byteAddress & 0xFF);
+  buffer[4] = 0xFF;
+  buffer[5] = 0xFF;
+  buffer[6] = 0xFF;
+  buffer[7] = 0xFF;
   dataDest = dst;
   dataBytes = dataBytesCount;
   dataPageAddress = pageAddress + 1;
   dataBytesLeft = size - dataBytesCount;
-  Tx_Len = 8;
-  Rx_Len = dataBytesCount;
-  SPI_ReadWrite(Tx_Buf, Rx_Buf, Tx_Len, Rx_Len, DataflashReadContinue);
+  txLen = 8;
+  rxLen = dataBytesCount;
+  SPI_ReadWrite(buffer, txLen, rxLen, DataflashReadContinue);
 }
 
 static void DataflashLoadBuffer(uint32_t dst, DataflashCommonCallback next)
 {
   uint16_t pageAddress;
   pageAddress = dst / DB321_PAGE_SIZE;
-  Tx_Buf[0] = DB321_PAGE_2_BUF1_TRF;
-  Tx_Buf[1] = (uint8_t)((pageAddress >> 6) & 0x7F);
-  Tx_Buf[2] = (uint8_t)((pageAddress << 2) & 0xFC);
-  Tx_Buf[3] = 0x00;
-  Tx_Len = 4;
-  Rx_Len = 0;
-  SPI_ReadWrite(Tx_Buf, Rx_Buf, Tx_Len, Rx_Len, next);
+  buffer[0] = DB321_PAGE_2_BUF1_TRF;
+  buffer[1] = (uint8_t)((pageAddress >> 6) & 0x7F);
+  buffer[2] = (uint8_t)((pageAddress << 2) & 0xFC);
+  buffer[3] = 0x00;
+  txLen = 4;
+  rxLen = 0;
+  SPI_ReadWrite(buffer, txLen, rxLen, next);
 }
 
 static void DataflashWriteContinue(void)
@@ -171,32 +167,32 @@ static void DataflashWriteContinue(void)
     if(dataBytesLeft >= DB321_PAGE_SIZE)
     {
       _delay_ms(DB321_PAGE_ERASE_PGM_T_MS);
-      Tx_Buf[0] = DB321_PAGE_PGM_BUF1;
-      Tx_Buf[1] = (uint8_t)((dataPageAddress >> 6) & 0x7F);
-      Tx_Buf[2] = (uint8_t)((dataPageAddress << 2) & 0xFC);
-      Tx_Buf[3] = 0x00;
-      memcpy(&Tx_Buf[4], (uint8_t *)dataSource, DB321_PAGE_SIZE);
-      Tx_Len = 4;
-      Rx_Len = DB321_PAGE_SIZE;
+      buffer[0] = DB321_PAGE_PGM_BUF1;
+      buffer[1] = (uint8_t)((dataPageAddress >> 6) & 0x7F);
+      buffer[2] = (uint8_t)((dataPageAddress << 2) & 0xFC);
+      buffer[3] = 0x00;
+      memcpy(&buffer[4], dataSource, DB321_PAGE_SIZE);
+      txLen = 4;
+      rxLen = DB321_PAGE_SIZE;
       dataPageAddress += 1;
       dataSource += DB321_PAGE_SIZE;
       dataBytesLeft -= DB321_PAGE_SIZE;
-      SPI_ReadWrite(Tx_Buf, Rx_Buf, Tx_Len, Rx_Len, DataflashWriteContinue);
+      SPI_ReadWrite(buffer, txLen, rxLen, DataflashWriteContinue);
     }
     else
     {
       if(dataflashLastPageSaved)
       {
         dataflashLastPageSaved = false;
-        Tx_Buf[0] = DB321_PAGE_PGM_BUF1;
-        Tx_Buf[1] = (uint8_t)((dataPageAddress >> 6) & 0x7F);
-        Tx_Buf[2] = (uint8_t)((dataPageAddress << 2) & 0xFC);
-        Tx_Buf[3] = 0x00;
-        memcpy(&Tx_Buf[4], (uint8_t *)dataSource, dataBytesLeft);
-        Tx_Len = 4;
-        Rx_Len = dataBytesLeft;
+        buffer[0] = DB321_PAGE_PGM_BUF1;
+        buffer[1] = (uint8_t)((dataPageAddress >> 6) & 0x7F);
+        buffer[2] = (uint8_t)((dataPageAddress << 2) & 0xFC);
+        buffer[3] = 0x00;
+        memcpy(&buffer[4], dataSource, dataBytesLeft);
+        txLen = 4;
+        rxLen = dataBytesLeft;
         dataBytesLeft = 0;
-        SPI_ReadWrite(Tx_Buf, Rx_Buf, Tx_Len, Rx_Len, DataflashWriteContinue);
+        SPI_ReadWrite(buffer, txLen, rxLen, DataflashWriteContinue);
       }
       else
       {
@@ -212,7 +208,7 @@ static void DataflashWriteContinue(void)
   }
 }
 
-static void DataflashWriteStart(uint32_t src, uint32_t dst, uint32_t size)
+static void DataflashWriteStart(uint8_t* src, uint32_t dst, uint32_t size)
 {
   uint16_t dataBytesCount;
   uint16_t pageAddress;
@@ -227,17 +223,17 @@ static void DataflashWriteStart(uint32_t src, uint32_t dst, uint32_t size)
   {
     dataBytesCount = size;
   }
-  Tx_Buf[0] = DB321_PAGE_PGM_BUF1;
-  Tx_Buf[1] = (uint8_t)((pageAddress >> 6) & 0x7F);
-  Tx_Buf[2] = (uint8_t)((pageAddress << 2) & 0xFC) | (uint8_t)((byteAddress >> 8) & 0x03);
-  Tx_Buf[3] = (uint8_t)(byteAddress & 0xFF);
-  memcpy(&Tx_Buf[4], (uint8_t *)src, dataBytesCount);  
+  buffer[0] = DB321_PAGE_PGM_BUF1;
+  buffer[1] = (uint8_t)((pageAddress >> 6) & 0x7F);
+  buffer[2] = (uint8_t)((pageAddress << 2) & 0xFC) | (uint8_t)((byteAddress >> 8) & 0x03);
+  buffer[3] = (uint8_t)(byteAddress & 0xFF);
+  memcpy(&buffer[4], src, dataBytesCount);  
   dataPageAddress = pageAddress + 1;
   dataSource = src + dataBytesCount;
   dataBytesLeft = size - dataBytesCount;
-  Tx_Len = 4;
-  Rx_Len = dataBytesCount;
-  SPI_ReadWrite(Tx_Buf, Rx_Buf, Tx_Len, Rx_Len, DataflashWriteContinue);
+  txLen = 4;
+  rxLen = dataBytesCount;
+  SPI_ReadWrite(buffer, txLen, rxLen, DataflashWriteContinue);
 }
 
 static void DataflashWriteLastWait(void)
@@ -250,7 +246,7 @@ static void DataflashWriteLastWait(void)
 static void DataflashWriteStartWait(void)
 {
   _delay_us(DB321_PAGE_2_BUF_TRF_T_US);
-  DataflashWriteStart(dataSource, dataDest, dataBytes);
+  DataflashWriteStart(dataSource, dataflashDest, dataBytes);
 }
 
 static void DataflashEraseContinue(void)
@@ -269,34 +265,34 @@ static void DataflashEraseContinue(void)
       {
         _delay_ms(DB321_PAGE_ERASE_T_MS);
       }
-      Tx_Buf[0] = DB321_PAGE_ERASE;
-      Tx_Buf[1] = (uint8_t)((dataPageAddress >> 6) & 0x7F);
-      Tx_Buf[2] = (uint8_t)((dataPageAddress << 2) & 0xFC);
-      Tx_Buf[3] = 0x00;
-      Tx_Len = 4;
-      Rx_Len = DB321_PAGE_SIZE;
+      buffer[0] = DB321_PAGE_ERASE;
+      buffer[1] = (uint8_t)((dataPageAddress >> 6) & 0x7F);
+      buffer[2] = (uint8_t)((dataPageAddress << 2) & 0xFC);
+      buffer[3] = 0x00;
+      txLen = 4;
+      rxLen = DB321_PAGE_SIZE;
       dataPageAddress += 1;
       dataBytesLeft -= DB321_PAGE_SIZE;
-      SPI_ReadWrite(Tx_Buf, Rx_Buf, Tx_Len, Rx_Len, DataflashEraseContinue);
+      SPI_ReadWrite(buffer, txLen, rxLen, DataflashEraseContinue);
     }
     else
     {
       if(dataflashLastPageSaved)
       {
         dataflashLastPageSaved = false;
-        Tx_Buf[0] = DB321_PAGE_PGM_BUF1;
-        Tx_Buf[1] = (uint8_t)((dataPageAddress >> 6) & 0x7F);
-        Tx_Buf[2] = (uint8_t)((dataPageAddress << 2) & 0xFC);
-        Tx_Buf[3] = 0x00;
+        buffer[0] = DB321_PAGE_PGM_BUF1;
+        buffer[1] = (uint8_t)((dataPageAddress >> 6) & 0x7F);
+        buffer[2] = (uint8_t)((dataPageAddress << 2) & 0xFC);
+        buffer[3] = 0x00;
         for(i = 0; i < dataBytesLeft; i++)
         {
-          Tx_Buf[4 + i] = 0xFF;
+          buffer[4 + i] = 0xFF;
         }
-        Tx_Len = 4;
-        Rx_Len = dataBytesLeft;
+        txLen = 4;
+        rxLen = dataBytesLeft;
         dataBytesLeft = 0;
         dataflashEraseManual = true;
-        SPI_ReadWrite(Tx_Buf, Rx_Buf, Tx_Len, Rx_Len, DataflashWriteContinue);
+        SPI_ReadWrite(buffer, txLen, rxLen, DataflashWriteContinue);
       }
       else
       {
@@ -332,15 +328,15 @@ static void DataflashEraseStart(uint32_t dst, uint32_t size)
 {
   uint16_t pageAddress;
   pageAddress = dst / DB321_PAGE_SIZE;
-  Tx_Buf[0] = DB321_PAGE_ERASE;
-  Tx_Buf[1] = (uint8_t)((pageAddress >> 6) & 0x7F);
-  Tx_Buf[2] = (uint8_t)((pageAddress << 2) & 0xFC);
-  Tx_Buf[3] = 0x00;
-  Tx_Len = 4;
-  Rx_Len = 0;
+  buffer[0] = DB321_PAGE_ERASE;
+  buffer[1] = (uint8_t)((pageAddress >> 6) & 0x7F);
+  buffer[2] = (uint8_t)((pageAddress << 2) & 0xFC);
+  buffer[3] = 0x00;
+  txLen = 4;
+  rxLen = 0;
   dataPageAddress = pageAddress + 1;
   dataBytesLeft = size - DB321_PAGE_SIZE;
-  SPI_ReadWrite(Tx_Buf, Rx_Buf, Tx_Len, Rx_Len, DataflashEraseContinue);
+  SPI_ReadWrite(buffer, txLen, rxLen, DataflashEraseContinue);
 }
 
 static void DataflashEraseStartManual(uint32_t dst, uint32_t size)
@@ -359,20 +355,20 @@ static void DataflashEraseStartManual(uint32_t dst, uint32_t size)
   {
     dataBytesCount = size;
   }
-  Tx_Buf[0] = DB321_PAGE_PGM_BUF1;
-  Tx_Buf[1] = (uint8_t)((pageAddress >> 6) & 0x7F);
-  Tx_Buf[2] = (uint8_t)((pageAddress << 2) & 0xFC) | (uint8_t)((byteAddress >> 8) & 0x03);
-  Tx_Buf[3] = (uint8_t)(byteAddress & 0xFF);
+  buffer[0] = DB321_PAGE_PGM_BUF1;
+  buffer[1] = (uint8_t)((pageAddress >> 6) & 0x7F);
+  buffer[2] = (uint8_t)((pageAddress << 2) & 0xFC) | (uint8_t)((byteAddress >> 8) & 0x03);
+  buffer[3] = (uint8_t)(byteAddress & 0xFF);
   for(i = 0; i < dataBytesCount; i++)
   {
-    Tx_Buf[4 + i] = 0xFF;
+    buffer[4 + i] = 0xFF;
   }
   dataPageAddress = pageAddress + 1;
   dataBytesLeft = size - dataBytesCount;  
-  Tx_Len = 4;
-  Rx_Len = dataBytesCount;
+  txLen = 4;
+  rxLen = dataBytesCount;
   dataflashEraseManual = true;
-  SPI_ReadWrite(Tx_Buf, Rx_Buf, Tx_Len, Rx_Len, DataflashEraseContinue);
+  SPI_ReadWrite(buffer, txLen, rxLen, DataflashEraseContinue);
 }
 
 static void DataflashEraseLastManualWait(void)
@@ -385,20 +381,21 @@ static void DataflashEraseLastManualWait(void)
 static void DataflashEraseStartManualWait(void)
 {
   _delay_us(DB321_PAGE_2_BUF_TRF_T_US);
-  DataflashEraseStartManual(dataDest, dataBytes);
+  DataflashEraseStartManual(dataflashDest, dataBytes);
 }
 
 /****************************************************************************
  * Public functions                                                         *
  ****************************************************************************/
 
-void DataflashInit(void)
+bool DataflashInit(void)
 {
   bufferInit();
   SPI_Init();
   DataflashCheckID();
   DataflashWriteLastWaitFunction = DataflashWriteLastWait;
   DataflashEraseLastManualWaitFunction = DataflashEraseLastManualWait; 
+  return dataflashInitialized;
 }
 
 bool DataflashErase(uint32_t dst, uint32_t size, DataflashCommonCallback callback)
@@ -422,7 +419,7 @@ bool DataflashErase(uint32_t dst, uint32_t size, DataflashCommonCallback callbac
   byteAddress = dst % DB321_PAGE_SIZE;
   if((byteAddress != 0) || ((size - byteAddress) < DB321_PAGE_SIZE))
   {
-    dataDest = dst;
+    dataflashDest = dst;
     dataBytes = size;
     DataflashLoadBuffer(dst, DataflashEraseStartManualWait);
   }
@@ -450,7 +447,7 @@ bool DataflashRead(uint32_t src, uint8_t *dst, uint32_t size, DataflashCommonCal
   {
     DataflashOperationFinishCallback = DataflashDummyCallback;
   }
-  DataflashReadStart(src, (uint32_t)dst, size);
+  DataflashReadStart(src, dst, size);
   return true;
 }
 
@@ -475,14 +472,14 @@ bool DataflashWrite(uint8_t *src, uint32_t dst, uint32_t size, DataflashCommonCa
   byteAddress = dst % DB321_PAGE_SIZE;
   if((byteAddress != 0) || ((size - byteAddress) < DB321_PAGE_SIZE))
   {
-    dataSource = (uint32_t)src;
-    dataDest = dst;
+    dataSource = src;
+    dataflashDest = dst;
     dataBytes = size;
     DataflashLoadBuffer(dst, DataflashWriteStartWait);
   }
   else
   {
-    DataflashWriteStart((uint32_t)src, dst, size);
+    DataflashWriteStart(src, dst, size);
   } 
   return true;
 }

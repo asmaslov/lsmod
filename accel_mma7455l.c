@@ -45,10 +45,10 @@ static bool readReg(uint8_t regAddr, uint8_t *dest, uint16_t count)
 
 static void clearInt(void)
 {
-	writeReg(MMA7455L_INTRST,
+  writeReg(MMA7455L_INTRST,
            MMA7455L_INTRST_CLRINT1 |
-				   MMA7455L_INTRST_CLRINT2);
-	writeReg(MMA7455L_INTRST,
+           MMA7455L_INTRST_CLRINT2);
+  writeReg(MMA7455L_INTRST,
            ~MMA7455L_INTRST_CLRINT1 &
            ~MMA7455L_INTRST_CLRINT2);
 }
@@ -59,8 +59,8 @@ static void clearInt(void)
 
 ISR(INT0_vect)
 {
-	Mma7455l_MotionDetected = true;
-	clearInt();
+  Mma7455l_MotionDetected = true;
+  clearInt();
 }
 
 /****************************************************************************

@@ -1,7 +1,7 @@
 #ifndef __LSMOD_PROTOCOL_H__
 #define __LSMOD_PROTOCOL_H__
 
-#define LSMOD_BAUDRATE  9600
+#define LSMOD_BAUDRATE  57600
 
 #define LSMOD_PACKET_HDR  0xFF
 #define LSMOD_PACKET_MSK  0x30

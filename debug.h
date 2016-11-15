@@ -5,6 +5,8 @@
 #include <inttypes.h>
 #include <util/delay.h>
 
+#include "comport.h"
+
 static inline void debug(uint8_t on)
 {
   if (on == 0)
@@ -15,6 +17,16 @@ static inline void debug(uint8_t on)
   {
     PORTD &= ~(1 << PD4);
   }
+}
+
+static inline void debugout(char ch)
+{
+  ComportDebug(ch);
+}
+
+static inline void debugstr(char *str)
+{
+  ComportDebugString(str);
 }
 
 static inline void deblink(int t)

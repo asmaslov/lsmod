@@ -9,14 +9,17 @@
 
 #define BAUD LSMOD_BAUDRATE
 
-#define RX_BUFFER_SIZE  8
-#define TX_BUFFER_SIZE  8
+#define RX_BUFFER_SIZE  16
+#define TX_BUFFER_SIZE  16
 
 typedef void (*ParserHandler)(void* args);
 
 extern volatile bool ComportIsDataToParse, ComportNeedFeedback;
 
 void ComportSetup(ParserHandler handler);
+
+void ComportDebug(char ch);
+void ComportDebugString(char *str);
 
 void ComportParse(void);
 

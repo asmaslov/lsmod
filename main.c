@@ -9,18 +9,19 @@
 #include "dataflash_at45db321b.h"
 #include "accel_mma7455l.h"
 #include "accel_adxl330.h"
+
 #include "debug.h"
 
 static void initBoard(void)
 {
-  PORTB = 0x00;
+  PORTB = (1 << PB0);
   DDRB = 0x00;
   PORTC = 0x00;
   DDRC = 0x00;
   PORTD = (1 << PD4) | (1 << PD7);
   DDRD = (1 << DDD4) | (1 << DDD6) | (1 << DDD7);
-  PCICR = PCIE0;
-  PCMSK0 = PCINT0;
+  /*PCICR = (1 << PCIE0);
+  PCMSK0 = (1 << PCINT0);*/
 }
 
 static void led1(bool on)
@@ -37,7 +38,7 @@ static void led1(bool on)
 
 static void led1Toggle(void)
 {
-	led1((PORTD & (1 << PD4)) == 0);
+  led1(PORTD & (1 << PD4));
 }
 
 static void led2(bool on)
@@ -54,44 +55,48 @@ static void led2(bool on)
 
 static void led2Toggle(void)
 {
-	led2((PORTD && (1 << PD7)) == 0);
+  led2(PORTD & (1 << PD7));
 }
 
 static void commandHandler(void* args)
 {
-   LsmodPacket* packet = (LsmodPacket*)args;
+  LsmodPacket* packet = (LsmodPacket*)args;
   if (packet->to == LSMOD_ADDR)
   {
-	  switch (packet->cmd) {
-		  case LSMOD_CONTROL_PING:
-		    ComportReplyAck(LSMOD_CONTROL_PING);
-		    break;
-			case LSMOD_CONTROL_STAT:
-			  ComportReplyAck(LSMOD_CONTROL_STAT);
-			  //TODO: ComportReplyStat(...);
-			  break;
-			case LSMOD_CONTROL_LOAD:
-			  ComportReplyAck(LSMOD_CONTROL_LOAD);
-			  //TODO: Load wav into dataflash
-			  ComportReplyLoaded();
-			  break;
-			case LSMOD_CONTROL_READ:
-			  ComportReplyAck(LSMOD_CONTROL_READ);
-			  //TODO: ComportReplyData(...);
-			  break;
-			default:
-			  ComportReplyError(packet->cmd);
-	  }		  
+    switch (packet->cmd) {
+      case LSMOD_CONTROL_PING:
+        ComportReplyAck(LSMOD_CONTROL_PING);
+        break;
+      case LSMOD_CONTROL_STAT:
+        ComportReplyAck(LSMOD_CONTROL_STAT);
+        //TODO: ComportReplyStat(...);
+        break;
+      case LSMOD_CONTROL_LOAD:
+        ComportReplyAck(LSMOD_CONTROL_LOAD);
+        //TODO: Load wav into dataflash
+        ComportReplyLoaded();
+        break;
+      case LSMOD_CONTROL_READ:
+        ComportReplyAck(LSMOD_CONTROL_READ);
+        //TODO: ComportReplyData(...);
+        break;
+      default:
+        ComportReplyError(packet->cmd);
+    }      
   }
   else
   {
-	  ComportReplyError(packet->cmd);
+    ComportReplyError(packet->cmd);
   }
 }
 
 ISR(PCINT0_vect)
 {
-  led2Toggle();
+  if (~PINB & (1 << PINB0))
+  {
+    led2Toggle();
+    _delay_ms(200);
+  } 
 }
 
 int main(void)
@@ -100,26 +105,37 @@ int main(void)
   wdt_disable();
   initBoard();
   ComportSetup(commandHandler);
-  Mma7455l_Init();
-  Adxl330_Init();
   sei();
+  debugout(0xAA);
+  debugout(0xBB);
+  debugout(0xCC);
+  DataflashInit();
+  //Mma7455l_Init()
+  //Adxl330_Init();
+  
   //wdt_enable(WDTO_500MS);
-  while(true)
+  while(1)
   {
-	  if (ComportIsDataToParse & !ComportNeedFeedback)
-	  {
-		  ComportParse();
-	  }
-	  if (Mma7455l_MotionDetected)
-	  {
-		  Mma7455l_MotionDetected = false;
-		  // TODO: Play music
-	  }
+    if (~PINB & (1 << PINB0))
+    {
+      led2Toggle();
+      _delay_ms(200);
+    }
+    /*if (ComportIsDataToParse & !ComportNeedFeedback)
+    {
+      ComportParse();
+    }
+    if (Mma7455l_MotionDetected)
+    {
+      Mma7455l_MotionDetected = false;
+      // TODO: Play music
+    }
     if (Adxl330_MotionDetected)
-	  {
-		  Adxl330_MotionDetected = false;
-		  // TODO: Play music
-	  }
+    {
+      Adxl330_MotionDetected = false;
+      // TODO: Play music
+    */
     //wdt_reset();
   }
+  return 0;
 }

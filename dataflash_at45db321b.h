@@ -32,12 +32,12 @@
 #define DB321_PAGE_PGM_BUF2          0x85  // Main memory page through buffer 2
 
 // Additional Commands
-#define DB321_PAGE_2_BUF1_TRF        0x53  // Main memory page to buffer 1 transfert
-#define DB321_PAGE_2_BUF2_TRF        0x55  // Main memory page to buffer 2 transfert
+#define DB321_PAGE_2_BUF1_TRF        0x53  // Main memory page to buffer 1 transfer
+#define DB321_PAGE_2_BUF2_TRF        0x55  // Main memory page to buffer 2 transfer
 #define DB321_PAGE_2_BUF1_CMP        0x60  // Main memory page to buffer 1 compare
 #define DB321_PAGE_2_BUF2_CMP        0x61  // Main memory page to buffer 2 compare
-#define DB321_AUTO_PAGE_PGM_BUF1     0x58  // Auto page rewrite throught buffer 1
-#define DB321_AUTO_PAGE_PGM_BUF2     0x59  // Auto page rewrite throught buffer 2
+#define DB321_AUTO_PAGE_PGM_BUF1     0x58  // Auto page rewrite through buffer 1
+#define DB321_AUTO_PAGE_PGM_BUF2     0x59  // Auto page rewrite through buffer 2
  
 // Timings
 
@@ -56,7 +56,7 @@
 #define DB321_BLOCK_PER_SECTOR       64
 #define DB321_PAGE_PER_SECTOR        (DB321_PAGE_PER_BLOCK * DB321_BLOCK_PER_SECTOR)  // 8 * 64 = 512 pages
 #define DB321_SECTOR_SIZE            (DB321_BLOCK_PER_SECTOR * DB321_BLOCK_SIZE)  // 64 * 4224 = 270336 bytes
-#define DB321_SECTOR_0_SIZE			  	 (DB321_PAGE_PER_BLOCK * DB321_PAGE_SIZE)  // 8 * 528 = 4224 bytes
+#define DB321_SECTOR_0_SIZE           (DB321_PAGE_PER_BLOCK * DB321_PAGE_SIZE)  // 8 * 528 = 4224 bytes
 #define DB321_SECTOR_1_SIZE          (DB321_BLOCK_PER_SECTOR * DB321_BLOCK_SIZE) // 64 * 4224 = 270336 bytes
 #define DB321_SECTOR_NUMBER          17
 #define DB321_SIZE                   (DB321_PAGE_NUM * DB321_PAGE_SIZE)  // 8192 * 528 = 4325376 bytes = 4224 Kbytes = 4 Mbytes + 128 Kbytes
@@ -67,7 +67,7 @@
 
 typedef void (*DataflashCommonCallback)(void);
 
-void DataflashInit(void);
+bool DataflashInit(void);
 bool DataflashRead(uint32_t src, uint8_t *dst, uint32_t size, DataflashCommonCallback callback);
 bool DataflashWrite(uint8_t *src, uint32_t dst, uint32_t size, DataflashCommonCallback callback);
 bool DataflashErase(uint32_t dst, uint32_t size, DataflashCommonCallback callback);
