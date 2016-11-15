@@ -35,9 +35,9 @@ static inline void deblink(int t)
   for (i = 0; i < t; i++)
   {
     debug(1);
-    _delay_ms(2500);
+    _delay_ms(150);
     debug(0);
-    _delay_ms(2500);
+    _delay_ms(150);
   }
 }
 

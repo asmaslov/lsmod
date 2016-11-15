@@ -106,7 +106,10 @@ int main(void)
   initBoard();
   ComportSetup(commandHandler);
   sei();
-  debug(DataflashInit());
+  if (DataflashInit())
+  {
+    deblink(3);
+  }
   //Mma7455l_Init()
   //Adxl330_Init();
   
@@ -115,9 +118,17 @@ int main(void)
   {
     if (~PINB & (1 << PINB0))
     {
-      led2Toggle();
+      led1Toggle();
       _delay_ms(200);
     }
+    if (PIND & (1 << PIND5))
+    {
+      led2(true);
+    }
+    else
+    {
+      led2(false);
+    } 
     /*if (ComportIsDataToParse & !ComportNeedFeedback)
     {
       ComportParse();
