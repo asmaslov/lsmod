@@ -6,6 +6,8 @@
 #include <math.h>
 #include <assert.h>
 
+#include "debug.h"
+
 /****************************************************************************
  * Private types/enumerations/variables                                     *
  ****************************************************************************/
@@ -77,37 +79,45 @@ bool Mma7455l_Init(void)
   Mma7455l_AccelReal.y = 0;
   Mma7455l_AccelReal.z = 0;
   I2C_Setup();
+  debugout('1');
   if (!writeReg(MMA7455L_MCTL,
                 MMA7455L_MCTL_MODE_LEVEL_DETECT |
                 MMA7455L_MCTL_GLVL_2G))
   {
+	  debugout('2');
     return false;
   }
   if (!readReg(MMA7455L_MCTL, &reg, 1))
   {
+	  debugout('3');
     return false;
   }
   if (!writeReg(MMA7455L_CTL1,
                 MMA7455L_CTL1_INTREG_LEVEL_DETECT))
   {
+	  debugout('4');
     return false;
   }
   if (!readReg(MMA7455L_CTL1, &reg, 1))
   {
+	  debugout('5');
     return false;
   }
   if (!writeReg(MMA7455L_LDTH,
                 MMA7455L_THRESHOLD))
   {
+	  debugout('6');
     return false;
   }
   if (!readReg(MMA7455L_LDTH, &reg, 1))
   {
+	  debugout('7');
     return false;
   }
   EICRA = (0 << ISC00) | (0 << ISC01);
   EIMSK = (1 << INT0);
   Mma7455l_Connected = true;
+  debugout('8');
   return true;
 }
 

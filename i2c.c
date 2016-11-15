@@ -5,6 +5,8 @@
 #include <inttypes.h>
 #include <util/twi.h>
 
+#include "debug.h"
+
 void I2C_Setup(void)
 {
   uint32_t rate;
@@ -154,6 +156,7 @@ restart:
     return -1;
   }
 begin:
+  debugout('A');
   TWCR = (1 << TWINT) | (1 << TWSTA) | (1 << TWEN);  // Send start condition
   t = I2C_TIMEOUT_TC;
   while (!(TWCR & (1 << TWINT)) && (--t > 0));
@@ -169,6 +172,7 @@ begin:
       sei();
       return -1;
   }
+  debugout('B');
   TWDR = i2cAddr | TW_WRITE;  // Send address byte with write flag
   TWCR = (1 << TWINT) | (1 << TWEN);
   t = I2C_TIMEOUT_TC;
@@ -185,6 +189,7 @@ begin:
     default:
       goto error;
   }
+  debugout('C');
   TWDR = subAddr;  // Send sub-address byte
   TWCR = (1 << TWINT) | (1 << TWEN);
   t = I2C_TIMEOUT_TC;
@@ -203,6 +208,7 @@ begin:
   }
   while (len-- > 0)
   {
+	  debugout('D');
     TWDR = *data++;  // Send data byte
     TWCR = (1 << TWINT) | (1 << TWEN);
     t = I2C_TIMEOUT_TC;
@@ -220,6 +226,7 @@ begin:
     }
   }
 quit:
+  debugout('E');
   TWCR = (1 << TWINT) | (1 << TWSTO) | (1 << TWEN);  // Send stop condition
   sei();
   return total;

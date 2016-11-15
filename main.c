@@ -110,6 +110,11 @@ int main(void)
   {
     deblink(3);
   }
+  _delay_ms(200);
+  if (Mma7455l_Init())
+  {
+    deblink(3);
+  }
   //Mma7455l_Init()
   //Adxl330_Init();
   
