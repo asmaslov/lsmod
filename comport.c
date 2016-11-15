@@ -119,7 +119,7 @@ static void send()
 
 ISR(USART_TX_vect)
 {
-	if (tx_counter)
+  if (tx_counter)
   {
     --tx_counter;
     UDR0 = tx_buffer[tx_rd_index++];

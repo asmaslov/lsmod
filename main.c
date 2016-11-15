@@ -106,10 +106,7 @@ int main(void)
   initBoard();
   ComportSetup(commandHandler);
   sei();
-  debugout(0xAA);
-  debugout(0xBB);
-  debugout(0xCC);
-  DataflashInit();
+  debug(DataflashInit());
   //Mma7455l_Init()
   //Adxl330_Init();
   

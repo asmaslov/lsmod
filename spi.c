@@ -4,8 +4,6 @@
 #include <avr/interrupt.h>
 #include <stddef.h>
 
-#include "debug.h"
-
 /****************************************************************************
  * Private types/enumerations/variables                                     *
  ****************************************************************************/
@@ -28,11 +26,11 @@ static void chipSelect(bool select)
 {
   if (select)
   {
-    PORTB |= (1 << PB2);
+    PORTB &= ~(1 << PB2);
   }
   else
   {
-    PORTB &= ~(1 << PB2);
+    PORTB |= (1 << PB2);
   }   
 }
 
@@ -47,28 +45,20 @@ static void dummyHandler(void)
 
 ISR(SPI_STC_vect)
 {
-	debug(true);
-  if (SPSR & (1 << WCOL))
+  if (cnt < (tx_len + rx_len))
   {
     *(data + cnt) = SPDR;
-	  debugout(*(data + cnt));
   }
+  cnt++;
   if (cnt < tx_len)
   {
-    cnt++;
-    if (cnt < tx_len)
-    {
-		  debugout(*(data + cnt));
-      SPDR = *(data + cnt);
-    }    
+    SPDR = *(data + cnt);
   }
   else
   {
     if (cnt < (tx_len + rx_len))
     {
-      *(data + cnt) = SPDR;
-	    debugout(*(data + cnt));
-      cnt++;
+      SPDR = 0xFF;
     }
     else
     {
@@ -87,18 +77,14 @@ ISR(SPI_STC_vect)
 void SPI_Init(void)
 {
   uint8_t dummy;
-  //uint32_t rate;
   
+  PORTB |= (1 << PB2);
   DDRB |= (1 << DDB2) | (1 << DDB3) | (1 << DDB5);
-  SPCR = (0 << CPOL) | (0 << CPHA) | (1 << SPE) | (1 << SPIE) | (1 << MSTR);
-  //rate = (F_CPU / SPI_FREQUENCY_HZ) / 2;
-  
-  // TODO: Calculate bits according to rate
-  SPCR |= (0 << SPR0) | (0 << SPR1);
-  SPSR = (1 << SPI2X);  // 10 Mbit (20 MHz clock)
   dummy = SPSR;
   dummy = dummy;
-  
+  SPCR = (0 << CPOL) | (0 << CPHA) | (1 << SPE) | (1 << SPIE) | (1 << MSTR);
+  // TODO: Calculate bits according to rate
+  SPCR |= (0 << SPR0) | (0 << SPR1); // 5 Mbit (20 MHz clock)
   SPI_TransferCompleted = false;
   handler = dummyHandler;
 }
@@ -117,7 +103,6 @@ void SPI_ReadWrite(uint8_t* dat, uint16_t tx_ln, uint16_t rx_ln, SPIHandler hnd)
   chipSelect(true);
   if (tx_ln != 0)
   {
-	  debugout(*data);
     SPDR = *data;
   }
 }

@@ -30,7 +30,7 @@ static void dummyHandler(void)
  * Interrupt handler functions                                              *
  ****************************************************************************/
 
-/*ISR(ADC_vect)
+ISR(ADC_vect)
 {
   uint8_t ch;
   
@@ -43,7 +43,7 @@ static void dummyHandler(void)
   }
   ADMUX = ADC_VREF | ch;
   ADCSRA |= (1 << ADSC);
-}*/
+}
 
 /****************************************************************************
  * Public functions                                                         *
