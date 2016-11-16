@@ -78,6 +78,7 @@ static void commandHandler(void* args)
         break;
       case LSMOD_CONTROL_READ:
         ComportReplyAck(LSMOD_CONTROL_READ);
+        led2Toggle();
         //TODO: ComportReplyData(...);
         break;
       default:
@@ -111,10 +112,10 @@ int main(void)
     deblink(3);
   }
   _delay_ms(200);
-  if (Mma7455l_Init())
+  /*if (Mma7455l_Init())
   {
     deblink(3);
-  }
+  }*/
   //Mma7455l_Init()
   //Adxl330_Init();
   
@@ -126,19 +127,11 @@ int main(void)
       led1Toggle();
       _delay_ms(200);
     }
-    if (PIND & (1 << PIND5))
-    {
-      led2(true);
-    }
-    else
-    {
-      led2(false);
-    } 
-    /*if (ComportIsDataToParse & !ComportNeedFeedback)
+    if (ComportIsDataToParse & !ComportNeedFeedback)
     {
       ComportParse();
     }
-    if (Mma7455l_MotionDetected)
+    /*if (Mma7455l_MotionDetected)
     {
       Mma7455l_MotionDetected = false;
       // TODO: Play music
