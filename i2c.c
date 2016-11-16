@@ -208,7 +208,7 @@ begin:
   }
   while (len-- > 0)
   {
-	  debugout('D');
+    debugout('D');
     TWDR = *data++;  // Send data byte
     TWCR = (1 << TWINT) | (1 << TWEN);
     t = I2C_TIMEOUT_TC;

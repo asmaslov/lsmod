@@ -84,34 +84,34 @@ bool Mma7455l_Init(void)
                 MMA7455L_MCTL_MODE_LEVEL_DETECT |
                 MMA7455L_MCTL_GLVL_2G))
   {
-	  debugout('2');
+    debugout('2');
     return false;
   }
   if (!readReg(MMA7455L_MCTL, &reg, 1))
   {
-	  debugout('3');
+    debugout('3');
     return false;
   }
   if (!writeReg(MMA7455L_CTL1,
                 MMA7455L_CTL1_INTREG_LEVEL_DETECT))
   {
-	  debugout('4');
+    debugout('4');
     return false;
   }
   if (!readReg(MMA7455L_CTL1, &reg, 1))
   {
-	  debugout('5');
+    debugout('5');
     return false;
   }
   if (!writeReg(MMA7455L_LDTH,
                 MMA7455L_THRESHOLD))
   {
-	  debugout('6');
+    debugout('6');
     return false;
   }
   if (!readReg(MMA7455L_LDTH, &reg, 1))
   {
-	  debugout('7');
+    debugout('7');
     return false;
   }
   EICRA = (0 << ISC00) | (0 << ISC01);

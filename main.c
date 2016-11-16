@@ -3,12 +3,17 @@
 #include <avr/wdt.h>
 #include <inttypes.h>
 #include <stdbool.h>
+#include <stdlib.h>
 
 #include "lsmod_config.h"
 #include "comport.h"
 #include "dataflash_at45db321b.h"
-#include "accel_mma7455l.h"
-#include "accel_adxl330.h"
+#ifdef MMA7455L_USED
+  #include "accel_mma7455l.h"
+#endif
+#ifdef ADXL330_USED
+  #include "accel_adxl330.h"
+#endif
 
 #include "debug.h"
 
@@ -20,8 +25,6 @@ static void initBoard(void)
   DDRC = 0x00;
   PORTD = (1 << PD4) | (1 << PD7);
   DDRD = (1 << DDD4) | (1 << DDD6) | (1 << DDD7);
-  /*PCICR = (1 << PCIE0);
-  PCMSK0 = (1 << PCINT0);*/
 }
 
 static void led1(bool on)
@@ -60,6 +63,8 @@ static void led2Toggle(void)
 
 static void commandHandler(void* args)
 {
+  uint8_t data[4];
+  
   LsmodPacket* packet = (LsmodPacket*)args;
   if (packet->to == LSMOD_ADDR)
   {
@@ -78,8 +83,17 @@ static void commandHandler(void* args)
         break;
       case LSMOD_CONTROL_READ:
         ComportReplyAck(LSMOD_CONTROL_READ);
-        led2Toggle();
-        //TODO: ComportReplyData(...);
+        Adxl330_Read(&Adxl330_AccelReal);
+        data[0] = (abs(Adxl330_AccelReal.x) >> 8) | ((Adxl330_AccelReal.x < 0) ? (1 << 7) : 0);
+        data[1] = abs(Adxl330_AccelReal.x);
+        data[2] = (abs(Adxl330_AccelReal.y) >> 8) | ((Adxl330_AccelReal.y < 0) ? (1 << 7) : 0);
+        data[3] = abs(Adxl330_AccelReal.y);
+        /*Adxl330_Get(&Adxl330_AnglesReal);
+        data[0] = (abs(floor(Adxl330_AnglesReal.roll)) >> 8) | ((Adxl330_AnglesReal.roll < 0) ? (1 << 7) : 0);
+        data[1] = abs(floor(Adxl330_AnglesReal.roll));
+        data[2] = (abs(floor(Adxl330_AnglesReal.pitch)) >> 8) | ((Adxl330_AnglesReal.pitch < 0) ? (1 << 7) : 0);
+        data[3] = abs(floor(Adxl330_AnglesReal.pitch));*/
+        ComportReplyData(data[0], data[1], data[2], data[3]);
         break;
       default:
         ComportReplyError(packet->cmd);
@@ -89,15 +103,6 @@ static void commandHandler(void* args)
   {
     ComportReplyError(packet->cmd);
   }
-}
-
-ISR(PCINT0_vect)
-{
-  if (~PINB & (1 << PINB0))
-  {
-    led2Toggle();
-    _delay_ms(200);
-  } 
 }
 
 int main(void)
@@ -111,37 +116,45 @@ int main(void)
   {
     deblink(3);
   }
-  _delay_ms(200);
-  /*if (Mma7455l_Init())
+#ifdef MMA7455L_USED
+  if (Mma7455l_Init())
   {
-    deblink(3);
-  }*/
-  //Mma7455l_Init()
-  //Adxl330_Init();
-  
-  //wdt_enable(WDTO_500MS);
+    deblink(2);
+  }
+#endif
+#ifdef ADXL330_USED
+  Adxl330_Init();
+#endif
+#ifdef WATCHDOG_USED
+  wdt_enable(WDTO_500MS);
+#endif
   while(1)
   {
     if (~PINB & (1 << PINB0))
     {
-      led1Toggle();
-      _delay_ms(200);
+      led2Toggle();
     }
     if (ComportIsDataToParse & !ComportNeedFeedback)
     {
       ComportParse();
     }
-    /*if (Mma7455l_MotionDetected)
+  #ifdef MMA7455L_USED
+    if (Mma7455l_MotionDetected)
     {
       Mma7455l_MotionDetected = false;
       // TODO: Play music
     }
+  #endif
+  #ifdef ADXL330_USED
     if (Adxl330_MotionDetected)
     {
       Adxl330_MotionDetected = false;
       // TODO: Play music
-    */
-    //wdt_reset();
+    }
+  #endif    
+  #ifdef WATCHDOG_USED
+    wdt_reset();
+  #endif
   }
   return 0;
 }

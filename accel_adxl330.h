@@ -8,12 +8,13 @@
 #define ADXL330_CHAN_Y  1
 #define ADXL330_CHAN_Z  2
 
-#define ADXL330_THRESHOLD  20
+#define ADXL330_THRESHOLD   20
+#define ADXL330_ZERO       512 
 
 typedef struct {
-  float x;
-  float y;
-  float z;
+  int16_t x;
+  int16_t y;
+  int16_t z;
 } ADXL330_VALUES;
 
 typedef struct {
@@ -28,6 +29,6 @@ extern ADXL330_ANGLES Adxl330_AnglesReal;
 
 void Adxl330_Init(void);
 void Adxl330_Read(ADXL330_VALUES* values);
-void Adxl330_Get(ADXL330_ANGLES* angles);
+//void Adxl330_Get(ADXL330_ANGLES* angles);
 
 #endif // __ACCEL_ADXL330__

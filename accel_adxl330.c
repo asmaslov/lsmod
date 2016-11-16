@@ -7,6 +7,8 @@
 #include <assert.h>
 #include <stddef.h>
 
+#include "debug.h"
+
 /****************************************************************************
  * Private types/enumerations/variables                                     *
  ****************************************************************************/
@@ -74,12 +76,15 @@ void Adxl330_Init(void)
 
 void Adxl330_Read(ADXL330_VALUES* values)
 {
-  values->x = *rawX / 16;
-  values->y = *rawY / 16;
-  values->z = *rawZ / 16;
+  values->x = *rawX;
+  values->x -= ADXL330_ZERO;
+  values->y = *rawY;
+  values->y -= ADXL330_ZERO;
+  values->z = *rawZ;
+  values->z -= ADXL330_ZERO;
 }
 
-void Adxl330_Get(ADXL330_ANGLES* angles)
+/*void Adxl330_Get(ADXL330_ANGLES* angles)
 {
   ADXL330_VALUES accel;
   float norm;
@@ -96,4 +101,4 @@ void Adxl330_Get(ADXL330_ANGLES* angles)
   cosPitch = sqrt(1.0 - (sinPitch * sinPitch));
   angles->roll = (float)(asin(sinRoll) * 180 / M_PI);
   angles->pitch = (float)(asin(sinPitch) * 180 / M_PI);
-}
+}*/

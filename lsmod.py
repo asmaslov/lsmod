@@ -5,6 +5,26 @@ import serial.tools.list_ports
 from ui_lsmod import Ui_Lsmod
 from PyQt4 import QtCore, QtGui
 
+LSMOD_ADDR = 0x21
+PC_ADDR    = 0xA1
+
+LSMOD_BAUDRATE = 57600
+
+LSMOD_PACKET_HDR = 0xDA
+LSMOD_PACKET_MSK = 0xB0
+LSMOD_PACKET_END = 0xBA
+
+LSMOD_CONTROL_PING = 0x00
+LSMOD_CONTROL_STAT = 0x01
+LSMOD_CONTROL_LOAD = 0x02
+LSMOD_CONTROL_READ = 0x03
+
+LSMOD_REPLY_ERROR  = 0x00
+LSMOD_REPLY_ACK    = 0x01
+LSMOD_REPLY_LOADED = 0x02
+LSMOD_REPLY_STAT   = 0x10
+LSMOD_REPLY_DATA   = 0x11
+
 def isint(value):
     try:
         int(value)
@@ -18,7 +38,7 @@ class MainWindow(QtGui.QMainWindow):
     tim = QtCore.QTimer()
     timPeriodMs = 100
     get = QtCore.QTimer()
-    getPeriodMs = 500
+    getPeriodMs = 250
     triggerTestStatus = 0
     
     def __init__(self):
@@ -49,39 +69,37 @@ class MainWindow(QtGui.QMainWindow):
         if self.ser.isOpen():
             packet = bytearray()
             crc = 0
-            packet.append(0xDA)
-            crc = crc + 0xDA
-            packet.append(0x21)
-            crc = crc + 0x21
-            packet.append(0xA1)
-            crc = crc + 0xA1
+            packet.append(LSMOD_PACKET_HDR)
+            crc = crc + LSMOD_PACKET_HDR
+            packet.append(LSMOD_ADDR)
+            crc = crc + LSMOD_ADDR
+            packet.append(PC_ADDR)
+            crc = crc + PC_ADDR
             packet.append(cmd)
             crc = crc + cmd
             if (len(data) > 0):
                 packet.append(len(data))
                 crc = crc + len(data)
                 for i in range (0, len(data)):
-                    if (data[i] == 0xDA) or (data[i] == 0xB0) or (data[i] == 0xBA):
-                        packet.append(0xB0)
+                    if (data[i] == LSMOD_PACKET_HDR) or (data[i] == LSMOD_PACKET_MSK) or (data[i] == LSMOD_PACKET_END):
+                        packet.append(LSMOD_PACKET_MSK)
                         packet.append(0xFF - data[i])
                     else:
                         packet.append(data[i])
                     crc = crc + data[i]
-            else:
-                packet.append(0x00)
-            if (crc == 0xDA) or (crc == 0xB0) or (crc == 0xBA):
-                packet.append(0xB0)
+            if (crc == LSMOD_PACKET_HDR) or (crc == LSMOD_PACKET_MSK) or (crc == LSMOD_PACKET_END):
+                packet.append(LSMOD_PACKET_MSK)
                 packet.append(0xFF - crc)
             else:
                 packet.append(crc & 0xFF)
-            packet.append(0xBA)
-            print ' '.join('0x{:02X}'.format(x) for x in packet)
+            packet.append(LSMOD_PACKET_END)
+            #print ' '.join('0x{:02X}'.format(x) for x in packet)
             self.ser.write(packet)
         else:
             self.ui.statusbar.showMessage('Port not open')
 
     def getData(self):
-        self.sendPacket(0x03)
+        self.sendPacket(LSMOD_CONTROL_READ)
             
     def on_pushButtonOpenTurnOnFile_released(self):
         self.ui.statusbar.showMessage('Open Turn On File')
@@ -140,7 +158,7 @@ class MainWindow(QtGui.QMainWindow):
     def setPort(self, name):
         self.ser = serial.Serial()
         self.ser.port = str(name)
-        self.ser.baudrate = 57600
+        self.ser.baudrate = LSMOD_BAUDRATE
         self.ser.parity = serial.PARITY_NONE
         self.ser.stopbits = serial.STOPBITS_ONE
         self.ser.bytesize = serial.EIGHTBITS
@@ -154,39 +172,53 @@ class MainWindow(QtGui.QMainWindow):
 
     def readPort(self):
         data = bytearray()
+        packet = list()
         crc = 0
-        if self.ser.isOpen() and (self.ser.inWaiting() >= 7):
-            packet = map(ord, self.ser.read(7))
-            print ' '.join('0x{:02X}'.format(x) for x in packet)
-            for i in range (0, len(packet)):
-                if (packet[i] == 0xB0):
-                    packet[i] = 0xFF - packet[i + 1]
-                    for j in range ((i + 1), (len(packet) - 1)):
-                        packet[i] = packet[i + 1]
-                    pop(packet)
-            for i in range (0, (len(packet) - 2)):
-                crc = crc + packet[i]
-            if (crc & 0xFF) == packet[-2]:
-                if (packet[0] == 0xDA) and (packet[1] == 0xA1) and (packet[2] == 0x21):
-                    if packet[3] == 0x01:
-                        self.ui.statusbar.showMessage('Acknowledged')
-                    elif packet[3] == 0x02:
-                        self.ui.statusbar.showMessage('Loaded')
-                    elif packet[3] == 0x11:
-                        for i in range (0, packet[4]):
-                            data.append(packet[5 + i])
-                        rotAngle = int(((data[0] & 0x7F) << 8) | data[1])
-                        if (data[0] & 0x80) != 0:
-                            rotAngle = -rotAngle
-                        tiltAngle = int(((data[2] & 0x7F) << 8) | data[3])
-                        if (data[2] & 0x80) != 0:
-                            tiltAngle = -tiltAngle
-                        self.ui.lineEditRealRot.setText(str(rotAngle))
-                        self.ui.lineEditRealTilt.setText(str(tiltAngle))
-                    elif packet[3] == 0x00:
-                        self.ui.statusbar.showMessage('Error')
-                    else:
-                        self.ui.statusbar.showMessage('Unknown')
+        endFound = False
+        if self.ser.isOpen():
+            while self.ser.inWaiting() and not endFound:
+                packet.append(ord(self.ser.read()))
+                if packet[-1] == LSMOD_PACKET_END:
+                    endFound = True
+            if len(packet) >= 6:
+                #print ' '.join('0x{:02X}'.format(x) for x in packet)
+                endFound = False
+                i = 0
+                while not endFound:
+                    if (packet[i] == LSMOD_PACKET_END):
+                        endFound = True
+                    elif (packet[i] == LSMOD_PACKET_MSK):
+                        packet[i] = 0xFF - packet[i + 1]
+                        for j in range ((i + 1), (len(packet) - 1)):
+                            packet[j] = packet[j + 1]
+                        packet.pop()
+                    i = i + 1
+                for i in range (0, (len(packet) - 2)):
+                    crc = crc + packet[i]
+                if (crc & 0xFF) == packet[-2]:
+                    if (packet[0] == LSMOD_PACKET_HDR) and (packet[1] == PC_ADDR) and (packet[2] == LSMOD_ADDR):
+                        if packet[3] == LSMOD_REPLY_ACK:
+                            self.ui.statusbar.showMessage('Acknowledged')
+                        elif packet[3] == LSMOD_REPLY_LOADED:
+                            self.ui.statusbar.showMessage('Loaded')
+                        elif packet[3] == LSMOD_REPLY_DATA:
+                            if len(packet) > 6:
+                                for i in range (0, (len(packet) - 6)):
+                                    data.append(packet[4 + i])
+                                rotAngle = int(((data[0] & 0x7F) << 8) | data[1])
+                                if (data[0] & 0x80) != 0:
+                                    rotAngle = -rotAngle
+                                tiltAngle = int(((data[2] & 0x7F) << 8) | data[3])
+                                if (data[2] & 0x80) != 0:
+                                    tiltAngle = -tiltAngle
+                                self.ui.lineEditRealRot.setText(str(rotAngle))
+                                self.ui.lineEditRealTilt.setText(str(tiltAngle))
+                            else:
+                                self.ui.statusbar.showMessage('No data')
+                        elif packet[3] == LSMOD_REPLY_ERROR:
+                            self.ui.statusbar.showMessage('Error')
+                        else:
+                            self.ui.statusbar.showMessage('Unknown')
 
 app = QtGui.QApplication(sys.argv)
 main = MainWindow()

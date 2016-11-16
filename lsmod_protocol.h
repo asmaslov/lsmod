@@ -14,18 +14,18 @@
 #define LSMOD_CONTROL_LOAD  0x02
 #define LSMOD_CONTROL_READ  0x03
 
-#define LSMOD_REPLY_ERROR  0x00
-#define LSMOD_REPLY_ACK    0x01
-#define LSMOD_REPLY_LOADED 0x02
-#define LSMOD_REPLY_STAT   0x10
-#define LSMOD_REPLY_DATA   0x11
+#define LSMOD_REPLY_ERROR   0x00
+#define LSMOD_REPLY_ACK     0x01
+#define LSMOD_REPLY_LOADED  0x02
+#define LSMOD_REPLY_STAT    0x10
+#define LSMOD_REPLY_DATA    0x11
 
 typedef struct _LsmodPacket {
   unsigned char header;
   unsigned char to;
   unsigned char from;
   unsigned char cmd;
-  unsigned char len;
+  unsigned char len;  // This byte is not transmitted
   unsigned char data[LSMOD_DATA_MAX_LEN];
   unsigned char crc;
   unsigned char end;
