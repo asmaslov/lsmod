@@ -26,8 +26,8 @@ static const uint32_t prescale2[8] = {0, 1, 8, 32, 64, 128, 256, 1024};
  * Public types/enumerations/variables                                      *
  ****************************************************************************/
 
-volatile bool Adxl330_MotionDetected = false;
 volatile bool Adxl330_HitDetected = false;
+volatile bool Adxl330_MotionDetected = false;
 
 ADXL330_VALUES Adxl330_AccelReal;
 ADXL330_ANGLES Adxl330_AnglesReal;
@@ -108,17 +108,20 @@ ISR(TIMER2_COMPA_vect)
     accelAccum.z = 0;
     zcount = 0;
   }
-  if ((abs(Adxl330_AccelReal.x - accelPrev.x) > ADXL330_MOTION) ||
-      (abs(Adxl330_AccelReal.y - accelPrev.y) > ADXL330_MOTION) ||
-      (abs(Adxl330_AccelReal.z - accelPrev.z) > ADXL330_MOTION))
-  {
-    Adxl330_MotionDetected = true;
-  }
   if ((abs(Adxl330_AccelReal.x - accelPrev.x) > ADXL330_HIT) ||
       (abs(Adxl330_AccelReal.y - accelPrev.y) > ADXL330_HIT) ||
       (abs(Adxl330_AccelReal.z - accelPrev.z) > ADXL330_HIT))
   {
     Adxl330_HitDetected = true;
+  }
+  else
+  {
+    if ((abs(Adxl330_AccelReal.x - accelPrev.x) > ADXL330_MOTION) ||
+        (abs(Adxl330_AccelReal.y - accelPrev.y) > ADXL330_MOTION) ||
+        (abs(Adxl330_AccelReal.z - accelPrev.z) > ADXL330_MOTION))
+    {
+      Adxl330_MotionDetected = true;
+    }
   }
   accelPrev.x = Adxl330_AccelReal.x;
   accelPrev.y = Adxl330_AccelReal.y;

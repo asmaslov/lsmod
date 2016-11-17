@@ -11,8 +11,8 @@
 #define ADXL330_ZERO       512
 #define ADXL330_FREQ_HZ    100
 #define ADXL330_ACCUMUL    100
-#define ADXL330_MOTION      33
-#define ADXL330_HIT         99
+#define ADXL330_MOTION      20
+#define ADXL330_HIT         80
  
 typedef struct {
   int16_t x;
@@ -25,8 +25,8 @@ typedef struct {
   float pitch;
 } ADXL330_ANGLES;
 
-extern volatile bool Adxl330_MotionDetected;
 extern volatile bool Adxl330_HitDetected;
+extern volatile bool Adxl330_MotionDetected;
 
 extern ADXL330_VALUES Adxl330_AccelReal;
 extern ADXL330_ANGLES Adxl330_AnglesReal;
