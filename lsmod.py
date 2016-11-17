@@ -40,6 +40,12 @@ class MainWindow(QtGui.QMainWindow):
     get = QtCore.QTimer()
     getPeriodMs = 250
     triggerTestStatus = 0
+    turnOnFilePlay = False
+    humFilePlay = False
+    swingFilePlay = False
+    hitFilePlay = False
+    clashFilePlay = False
+    turnOffFilePlay = False
     
     def __init__(self):
         super(MainWindow, self).__init__()
@@ -103,21 +109,73 @@ class MainWindow(QtGui.QMainWindow):
             
     def on_pushButtonOpenTurnOnFile_released(self):
         self.ui.statusbar.showMessage('Open Turn On File')
+        name = QtGui.QFileDialog.getSaveFileName(self)
+        if QtCore.QFile.exists(name):
+            with open(name, 'r') as file:
+                file.close()
+
+    def on_pushButtonOpenTurnOnFilePlay_released(self):
+        if not self.turnOnFilePlay:
+            self.ui.pushButtonOpenTurnOnFilePlay.setText('||')
+            self.turnOnFilePlay = True
+        else:
+            self.ui.pushButtonOpenTurnOnFilePlay.setText('>')
+            self.turnOnFilePlay = False
 
     def on_pushButtonOpenHumFile_released(self):
         self.ui.statusbar.showMessage('Open Hum File')
 
+    def on_pushButtonOpenHumFilePlay_released(self):
+        if not self.humFilePlay:
+            self.ui.pushButtonOpenHumFilePlay.setText('||')
+            self.humFilePlay = True
+        else:
+            self.ui.pushButtonOpenHumFilePlay.setText('>')
+            self.humFilePlay = False
+
     def on_pushButtonOpenSwingFile_pressed(self):
         self.ui.statusbar.showMessage('Open Swing File')
+
+    def on_pushButtonOpenSwingFilePlay_pressed(self):
+        if not self.swingFilePlay:
+            self.ui.pushButtonOpenSwingFilePlay.setText('||')
+            self.swingFilePlay = True
+        else:
+            self.ui.pushButtonOpenSwingFilePlay.setText('>')
+            self.swingFilePlay = False
         
     def on_pushButtonOpenHitFile_released(self):
         self.ui.statusbar.showMessage('Open Hit File')
+
+    def on_pushButtonOpenHitFilePlay_released(self):
+        if not self.hitFilePlay:
+            self.ui.pushButtonOpenHitFilePlay.setText('||')
+            self.hitFilePlay = True
+        else:
+            self.ui.pushButtonOpenHitFilePlay.setText('>')
+            self.hitFilePlay = False
         
     def on_pushButtonOpenClashFile_pressed(self):
         self.ui.statusbar.showMessage('Open Clash File')
+
+    def on_pushButtonOpenClashFilePlay_pressed(self):
+        if not self.clashFilePlay:
+            self.ui.pushButtonOpenClashFilePlay.setText('||')
+            self.clashFilePlay = True
+        else:
+            self.ui.pushButtonOpenClashFilePlay.setText('>')
+            self.clashFilePlay = False
             
     def on_pushButtonOpenTurnOffFile_released(self):
         self.ui.statusbar.showMessage('Open Turn Off File')
+
+    def on_pushButtonOpenTurnOffFilePlay_released(self):
+        if not self.turnOffFilePlay:
+            self.ui.pushButtonOpenTurnOffFilePlay.setText('||')
+            self.turnOffFilePlay = True
+        else:
+            self.ui.pushButtonOpenTurnOffFilePlay.setText('>')
+            self.turnOffFilePlay = False
 
     def on_pushButtonLoad_released(self):
         self.ui.statusbar.showMessage('Load')
@@ -126,9 +184,11 @@ class MainWindow(QtGui.QMainWindow):
     def on_pushButtonTest_clicked(self, arg):
         if arg:
             self.triggerTestStatus = 1
+            self.ui.pushButtonLoad.setEnabled(False)
             self.get.start(self.getPeriodMs)
         else:
             self.triggerTestStatus = 0
+            self.ui.pushButtonLoad.setEnabled(True)
             self.get.stop()
 
     @QtCore.pyqtSlot(bool)
@@ -156,6 +216,7 @@ class MainWindow(QtGui.QMainWindow):
             sys.exit()
 
     def setPort(self, name):
+        font = QtGui.QFont()
         self.ser = serial.Serial()
         self.ser.port = str(name)
         self.ser.baudrate = LSMOD_BAUDRATE
@@ -168,6 +229,11 @@ class MainWindow(QtGui.QMainWindow):
             self.ui.statusbar.showMessage('Port ' + name + ' not available')
         if self.ser.isOpen():
             self.tim.start(self.timPeriodMs)
+            self.ui.labelConnection.setText('Connected')
+            font.setBold(True)
+            self.ui.labelConnection.setFont(font)
+            self.ui.pushButtonLoad.setEnabled(True)
+            self.ui.pushButtonTest.setEnabled(True)
             self.ui.statusbar.showMessage('Connected to ' + name)
 
     def readPort(self):

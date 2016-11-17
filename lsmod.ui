@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Serial test</string>
+   <string>Lsmod Configurator</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QTextEdit" name="textEdit">
@@ -25,6 +25,9 @@
     </property>
    </widget>
    <widget class="QGroupBox" name="groupBoxSoundEffects">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
     <property name="geometry">
      <rect>
       <x>10</x>
@@ -54,7 +57,7 @@
       <rect>
        <x>10</x>
        <y>40</y>
-       <width>251</width>
+       <width>211</width>
        <height>21</height>
       </rect>
      </property>
@@ -62,7 +65,7 @@
     <widget class="QPushButton" name="pushButtonOpenTurnOnFile">
      <property name="geometry">
       <rect>
-       <x>270</x>
+       <x>230</x>
        <y>40</y>
        <width>71</width>
        <height>21</height>
@@ -90,7 +93,7 @@
       <rect>
        <x>10</x>
        <y>90</y>
-       <width>251</width>
+       <width>211</width>
        <height>21</height>
       </rect>
      </property>
@@ -98,7 +101,7 @@
     <widget class="QPushButton" name="pushButtonOpenHumFile">
      <property name="geometry">
       <rect>
-       <x>270</x>
+       <x>230</x>
        <y>90</y>
        <width>71</width>
        <height>21</height>
@@ -126,7 +129,7 @@
       <rect>
        <x>10</x>
        <y>140</y>
-       <width>251</width>
+       <width>211</width>
        <height>21</height>
       </rect>
      </property>
@@ -134,7 +137,7 @@
     <widget class="QPushButton" name="pushButtonOpenSwingFile">
      <property name="geometry">
       <rect>
-       <x>270</x>
+       <x>230</x>
        <y>140</y>
        <width>71</width>
        <height>21</height>
@@ -162,7 +165,7 @@
       <rect>
        <x>10</x>
        <y>190</y>
-       <width>251</width>
+       <width>211</width>
        <height>21</height>
       </rect>
      </property>
@@ -170,7 +173,7 @@
     <widget class="QPushButton" name="pushButtonOpenHitFile">
      <property name="geometry">
       <rect>
-       <x>270</x>
+       <x>230</x>
        <y>190</y>
        <width>71</width>
        <height>21</height>
@@ -198,7 +201,7 @@
       <rect>
        <x>10</x>
        <y>240</y>
-       <width>251</width>
+       <width>211</width>
        <height>21</height>
       </rect>
      </property>
@@ -206,7 +209,7 @@
     <widget class="QPushButton" name="pushButtonOpenClashFile">
      <property name="geometry">
       <rect>
-       <x>270</x>
+       <x>230</x>
        <y>240</y>
        <width>71</width>
        <height>21</height>
@@ -217,6 +220,9 @@
      </property>
     </widget>
     <widget class="QPushButton" name="pushButtonLoad">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="geometry">
       <rect>
        <x>140</x>
@@ -251,7 +257,7 @@
     <widget class="QPushButton" name="pushButtonOpenTurnOffFile">
      <property name="geometry">
       <rect>
-       <x>270</x>
+       <x>230</x>
        <y>290</y>
        <width>71</width>
        <height>21</height>
@@ -279,25 +285,109 @@
       <rect>
        <x>10</x>
        <y>290</y>
-       <width>251</width>
+       <width>211</width>
        <height>21</height>
       </rect>
      </property>
     </widget>
+    <widget class="QPushButton" name="pushButtonOpenTurnOnFilePlay">
+     <property name="geometry">
+      <rect>
+       <x>310</x>
+       <y>40</y>
+       <width>31</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>&gt;</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButtonOpenHumFilePlay">
+     <property name="geometry">
+      <rect>
+       <x>310</x>
+       <y>90</y>
+       <width>31</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>&gt;</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButtonOpenSwingFilePlay">
+     <property name="geometry">
+      <rect>
+       <x>310</x>
+       <y>140</y>
+       <width>31</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>&gt;</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButtonOpenHitFilePlay">
+     <property name="geometry">
+      <rect>
+       <x>310</x>
+       <y>190</y>
+       <width>31</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>&gt;</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButtonOpenClashFilePlay">
+     <property name="geometry">
+      <rect>
+       <x>310</x>
+       <y>240</y>
+       <width>31</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>&gt;</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButtonOpenTurnOffFilePlay">
+     <property name="geometry">
+      <rect>
+       <x>310</x>
+       <y>290</y>
+       <width>31</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>&gt;</string>
+     </property>
+    </widget>
    </widget>
    <widget class="QGroupBox" name="groupBoxGyroscope">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
     <property name="geometry">
      <rect>
       <x>370</x>
-      <y>10</y>
+      <y>60</y>
       <width>120</width>
-      <height>161</height>
+      <height>221</height>
      </rect>
     </property>
     <property name="title">
      <string>Gyroscope</string>
     </property>
     <widget class="QPushButton" name="pushButtonTest">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="geometry">
       <rect>
        <x>30</x>
@@ -332,26 +422,55 @@
       <enum>QFrame::Raised</enum>
      </property>
     </widget>
+    <widget class="QLineEdit" name="lineEditRealRot">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>160</y>
+       <width>101</width>
+       <height>21</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="lineEditRealTilt">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>190</y>
+       <width>101</width>
+       <height>21</height>
+      </rect>
+     </property>
+    </widget>
    </widget>
-   <widget class="QLineEdit" name="lineEditRealRot">
+   <widget class="QGroupBox" name="groupBoxConnection">
     <property name="geometry">
      <rect>
       <x>370</x>
-      <y>180</y>
+      <y>10</y>
       <width>121</width>
-      <height>21</height>
+      <height>41</height>
      </rect>
     </property>
-   </widget>
-   <widget class="QLineEdit" name="lineEditRealTilt">
-    <property name="geometry">
-     <rect>
-      <x>370</x>
-      <y>210</y>
-      <width>121</width>
-      <height>21</height>
-     </rect>
+    <property name="title">
+     <string>Connection</string>
     </property>
+    <widget class="QLabel" name="labelConnection">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>16</y>
+       <width>81</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Disconnected</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
@@ -369,8 +488,8 @@
     </property>
     <addaction name="actionNew"/>
     <addaction name="actionOpen"/>
-    <addaction name="actionSave_configuration"/>
     <addaction name="actionSave"/>
+    <addaction name="actionSaveAs"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
@@ -394,7 +513,7 @@
     <string>Ctrl+O</string>
    </property>
   </action>
-  <action name="actionSave">
+  <action name="actionSaveAs">
    <property name="text">
     <string>Save As...</string>
    </property>
@@ -413,7 +532,7 @@
     <string>Ctrl+Q</string>
    </property>
   </action>
-  <action name="actionSave_configuration">
+  <action name="actionSave">
    <property name="text">
     <string>Save</string>
    </property>
