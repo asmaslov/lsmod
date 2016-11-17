@@ -127,7 +127,7 @@ int main(void)
   {
     if (~PINB & (1 << PINB0))
     {
-      led2Toggle();
+      // TODO: Do something
     }
     if (ComportIsDataToParse & !ComportNeedFeedback)
     {
@@ -144,6 +144,15 @@ int main(void)
     if (Adxl330_MotionDetected)
     {
       Adxl330_MotionDetected = false;
+      led2Toggle();
+      _delay_ms(200);
+      // TODO: Play music
+    }
+    if (Adxl330_HitDetected)
+    {
+      Adxl330_HitDetected = false;
+      led1Toggle();
+      _delay_ms(200);
       // TODO: Play music
     }
   #endif    

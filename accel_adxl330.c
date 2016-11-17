@@ -17,7 +17,9 @@
 uint16_t* rawX = NULL;
 uint16_t* rawY = NULL;
 uint16_t* rawZ = NULL;
-static ADXL330_VALUES Adxl330_AccelPrev;
+static volatile uint8_t xcount, ycount, zcount;
+static ADXL330_VALUES accelPrev;
+static ADXL330_VALUES accelAccum;
 static const uint32_t prescale2[8] = {0, 1, 8, 32, 64, 128, 256, 1024};
 
 /****************************************************************************
@@ -25,6 +27,7 @@ static const uint32_t prescale2[8] = {0, 1, 8, 32, 64, 128, 256, 1024};
  ****************************************************************************/
 
 volatile bool Adxl330_MotionDetected = false;
+volatile bool Adxl330_HitDetected = false;
 
 ADXL330_VALUES Adxl330_AccelReal;
 ADXL330_ANGLES Adxl330_AnglesReal;
@@ -35,20 +38,32 @@ ADXL330_ANGLES Adxl330_AnglesReal;
 
 static void readyX(void)
 {
-  Adxl330_AccelReal.x = *rawX;
-  Adxl330_AccelReal.x -= ADXL330_ZERO;
+  if (xcount < ADXL330_ACCUMUL)
+  {
+    xcount++;
+    accelAccum.x += *rawX;
+    accelAccum.x -= ADXL330_ZERO;
+  }  
 }
 
 static void readyY(void)
 {
-  Adxl330_AccelReal.y = *rawY;
-  Adxl330_AccelReal.y -= ADXL330_ZERO;
+  if (ycount < ADXL330_ACCUMUL)
+  {
+    ycount++;
+    accelAccum.y += *rawY;
+    accelAccum.y -= ADXL330_ZERO;
+  }  
 }
 
 static void readyZ(void)
 {
-  Adxl330_AccelReal.z = *rawZ;
-  Adxl330_AccelReal.z -= ADXL330_ZERO;
+  if (zcount < ADXL330_ACCUMUL)
+  {
+    zcount++;
+    accelAccum.z += *rawZ;
+    accelAccum.z -= ADXL330_ZERO;
+  }  
 }
 
 static void timer2Setup(uint16_t freq)
@@ -75,15 +90,39 @@ static void timer2Setup(uint16_t freq)
 
 ISR(TIMER2_COMPA_vect)
 {
-  if ((abs(Adxl330_AccelReal.x - Adxl330_AccelPrev.x) > ADXL330_THRESHOLD) ||
-      (abs(Adxl330_AccelReal.y - Adxl330_AccelPrev.y) > ADXL330_THRESHOLD) ||
-      (abs(Adxl330_AccelReal.z - Adxl330_AccelPrev.z) > ADXL330_THRESHOLD))
+  if (xcount == ADXL330_ACCUMUL)
+  {
+    Adxl330_AccelReal.x = accelAccum.x / ADXL330_ACCUMUL;
+    accelAccum.x = 0;
+    xcount = 0;
+  }
+  if (ycount == ADXL330_ACCUMUL)
+  {
+    Adxl330_AccelReal.y = accelAccum.y / ADXL330_ACCUMUL;
+    accelAccum.y = 0;
+    ycount = 0;
+  }
+  if (zcount == ADXL330_ACCUMUL)
+  {
+    Adxl330_AccelReal.z = accelAccum.z / ADXL330_ACCUMUL;
+    accelAccum.z = 0;
+    zcount = 0;
+  }
+  if ((abs(Adxl330_AccelReal.x - accelPrev.x) > ADXL330_MOTION) ||
+      (abs(Adxl330_AccelReal.y - accelPrev.y) > ADXL330_MOTION) ||
+      (abs(Adxl330_AccelReal.z - accelPrev.z) > ADXL330_MOTION))
   {
     Adxl330_MotionDetected = true;
-  }  
-  Adxl330_AccelPrev.x = Adxl330_AccelReal.x;
-  Adxl330_AccelPrev.y = Adxl330_AccelReal.y;
-  Adxl330_AccelPrev.z = Adxl330_AccelReal.z;
+  }
+  if ((abs(Adxl330_AccelReal.x - accelPrev.x) > ADXL330_HIT) ||
+      (abs(Adxl330_AccelReal.y - accelPrev.y) > ADXL330_HIT) ||
+      (abs(Adxl330_AccelReal.z - accelPrev.z) > ADXL330_HIT))
+  {
+    Adxl330_HitDetected = true;
+  }
+  accelPrev.x = Adxl330_AccelReal.x;
+  accelPrev.y = Adxl330_AccelReal.y;
+  accelPrev.z = Adxl330_AccelReal.z;
 }
 
 /****************************************************************************
@@ -94,12 +133,18 @@ void Adxl330_Init(void)
 {
   Adxl330_AnglesReal.roll = 0;
   Adxl330_AnglesReal.pitch = 0;
-  Adxl330_AccelPrev.x = 0;
-  Adxl330_AccelPrev.y = 0;
-  Adxl330_AccelPrev.z = 0;
   Adxl330_AccelReal.x = 0;
   Adxl330_AccelReal.y = 0;
   Adxl330_AccelReal.z = 0;
+  accelAccum.x = 0;
+  accelAccum.y = 0;
+  accelAccum.y = 0;
+  accelPrev.x = 0;
+  accelPrev.y = 0;
+  accelPrev.z = 0;
+  xcount = 0;
+  ycount = 0;
+  zcount = 0;
   timer2Setup(ADXL330_FREQ_HZ);
   ADC_Init();
   rawX = ADC_ChannelSetup(ADXL330_CHAN_X, readyX);
