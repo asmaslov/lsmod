@@ -5,6 +5,7 @@
 #include <avr/interrupt.h>
 #include <math.h>
 #include <assert.h>
+#include <stdlib.h>
 
 #include "debug.h"
 
@@ -142,6 +143,8 @@ bool Mma7455l_Read(MMA7455L_VALUES* values)
       case MMA7455L_MCTL_GLVL_8G:
         sens = MMA7455L_SENSITIVITY_8G;
         break;
+      default:
+        sens = 0;
     }
     rawX = ((((uint16_t)buffer[1] << 8) | buffer[0]) & 0x1FF) * (buffer[1] & (1 << 1)) ? -1 : 1;
     rawY = ((((uint16_t)buffer[3] << 8) | buffer[2]) & 0x1FF) * (buffer[3] & (1 << 1)) ? -1 : 1;

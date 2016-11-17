@@ -11,9 +11,9 @@
  * Private types/enumerations/variables                                     *
  ****************************************************************************/
 
-bool initialized = false;
-ADCHandler handlers[ADC_TOTAL_CHANNELS];
-uint16_t values[ADC_TOTAL_CHANNELS];
+static bool initialized = false;
+static ADCHandler handlers[ADC_TOTAL_CHANNELS];
+static uint16_t values[ADC_TOTAL_CHANNELS];
 
 /****************************************************************************
  * Public types/enumerations/variables                                      *
