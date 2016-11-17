@@ -63,8 +63,6 @@ static void led2Toggle(void)
 
 static void commandHandler(void* args)
 {
-  uint8_t data[4];
-  
   LsmodPacket* packet = (LsmodPacket*)args;
   if (packet->to == LSMOD_ADDR)
   {
@@ -83,17 +81,14 @@ static void commandHandler(void* args)
         break;
       case LSMOD_CONTROL_READ:
         ComportReplyAck(LSMOD_CONTROL_READ);
-        Adxl330_Read(&Adxl330_AccelReal);
-        data[0] = (abs(Adxl330_AccelReal.x) >> 8) | ((Adxl330_AccelReal.x < 0) ? (1 << 7) : 0);
-        data[1] = abs(Adxl330_AccelReal.x);
-        data[2] = (abs(Adxl330_AccelReal.y) >> 8) | ((Adxl330_AccelReal.y < 0) ? (1 << 7) : 0);
-        data[3] = abs(Adxl330_AccelReal.y);
-        /*Adxl330_Get(&Adxl330_AnglesReal);
-        data[0] = (abs(floor(Adxl330_AnglesReal.roll)) >> 8) | ((Adxl330_AnglesReal.roll < 0) ? (1 << 7) : 0);
-        data[1] = abs(floor(Adxl330_AnglesReal.roll));
-        data[2] = (abs(floor(Adxl330_AnglesReal.pitch)) >> 8) | ((Adxl330_AnglesReal.pitch < 0) ? (1 << 7) : 0);
-        data[3] = abs(floor(Adxl330_AnglesReal.pitch));*/
-        ComportReplyData(data[0], data[1], data[2], data[3]);
+        /*(abs(floor(Adxl330_AnglesReal.roll)) >> 8) | ((Adxl330_AnglesReal.roll < 0) ? (1 << 7) : 0),
+        abs(floor(Adxl330_AnglesReal.roll)),
+        (abs(floor(Adxl330_AnglesReal.pitch)) >> 8) | ((Adxl330_AnglesReal.pitch < 0) ? (1 << 7) : 0),
+        abs(floor(Adxl330_AnglesReal.pitch))*/
+        ComportReplyData((abs(Adxl330_AccelReal.x) >> 8) | ((Adxl330_AccelReal.x < 0) ? (1 << 7) : 0),
+                         abs(Adxl330_AccelReal.x),
+                         (abs(Adxl330_AccelReal.y) >> 8) | ((Adxl330_AccelReal.y < 0) ? (1 << 7) : 0),
+                         abs(Adxl330_AccelReal.y));
         break;
       default:
         ComportReplyError(packet->cmd);

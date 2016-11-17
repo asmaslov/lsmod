@@ -20,7 +20,7 @@
 #define LSMOD_REPLY_STAT    0x10
 #define LSMOD_REPLY_DATA    0x11
 
-typedef struct _LsmodPacket {
+typedef struct {
   unsigned char header;
   unsigned char to;
   unsigned char from;
