@@ -133,12 +133,9 @@ ISR(USART_TX_vect)
 
 ISR(USART_RX_vect)
 {
-  uint8_t status, data;
-  status = UCSR0A;
-  data = UDR0;
-  if ((status & ((1 << FE0) | (1 << UPE0) | (1 << DOR0))) == 0)
+  if ((UCSR0A & ((1 << FE0) | (1 << UPE0) | (1 << DOR0))) == 0)
   {
-    rx_buffer[rx_wr_index++] = data;
+    rx_buffer[rx_wr_index++] = UDR0;
     if (rx_wr_index == RX_BUFFER_SIZE)
     {
       rx_wr_index = 0;

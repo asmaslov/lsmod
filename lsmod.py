@@ -93,7 +93,7 @@ class MainWindow(QtGui.QMainWindow):
             else:
                 packet.append(crc & 0xFF)
             packet.append(LSMOD_PACKET_END)
-            #print ' '.join('0x{:02X}'.format(x) for x in packet)
+            print ' '.join('0x{:02X}'.format(x) for x in packet)
             self.ser.write(packet)
         else:
             self.ui.statusbar.showMessage('Port not open')
@@ -181,10 +181,10 @@ class MainWindow(QtGui.QMainWindow):
                 if packet[-1] == LSMOD_PACKET_END:
                     endFound = True
             if len(packet) >= 6:
-                #print ' '.join('0x{:02X}'.format(x) for x in packet)
+                print ' '.join('0x{:02X}'.format(x) for x in packet)
                 endFound = False
                 i = 0
-                while not endFound:
+                while not endFound and (i < len(packet)):
                     if (packet[i] == LSMOD_PACKET_END):
                         endFound = True
                     elif (packet[i] == LSMOD_PACKET_MSK):
