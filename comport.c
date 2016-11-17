@@ -314,23 +314,30 @@ void ComportReplyLoaded(void)
   send();
 }
 
-void ComportReplyStat(uint8_t stat)
+void ComportReplyStat(uint8_t axh, uint8_t axl, uint8_t ayh, uint8_t ayl, uint8_t azh, uint8_t azl)
 {
   packet.to = packet.from;
   packet.cmd = LSMOD_REPLY_STAT;
-  packet.data[0] = stat;
-  packet.len = 1;
+  packet.data[0] = axh;
+  packet.data[1] = axl;
+  packet.data[2] = ayh;
+  packet.data[3] = ayl;
+  packet.data[4] = azh;
+  packet.data[5] = azl;
+  packet.len = 6;
   send();
 }
 
-void ComportReplyData(uint8_t data0, uint8_t data1, uint8_t data2, uint8_t data3)
+void ComportReplyData(uint8_t* data, uint8_t len)
 {
+  uint8_t i;
+  
   packet.to = packet.from;
   packet.cmd = LSMOD_REPLY_DATA;
-  packet.data[0] = data0;
-  packet.data[1] = data1;
-  packet.data[2] = data2;
-  packet.data[3] = data3;
-  packet.len = 4;
+  for (i = 0; i < len; i++)
+  {
+    packet.data[i] = *(data + i);
+  }
+  packet.len = len;
   send();
 }

@@ -72,23 +72,21 @@ static void commandHandler(void* args)
         break;
       case LSMOD_CONTROL_STAT:
         ComportReplyAck(LSMOD_CONTROL_STAT);
-        //TODO: ComportReplyStat(...);
+        ComportReplyStat((abs(Adxl330_AccelReal.x) >> 8) | ((Adxl330_AccelReal.x < 0) ? (1 << 7) : 0),
+                         abs(Adxl330_AccelReal.x),
+                         (abs(Adxl330_AccelReal.y) >> 8) | ((Adxl330_AccelReal.y < 0) ? (1 << 7) : 0),
+                         abs(Adxl330_AccelReal.y),
+                         (abs(Adxl330_AccelReal.z) >> 8) | ((Adxl330_AccelReal.z < 0) ? (1 << 7) : 0),
+                         abs(Adxl330_AccelReal.z));
         break;
       case LSMOD_CONTROL_LOAD:
         ComportReplyAck(LSMOD_CONTROL_LOAD);
         //TODO: Load wav into dataflash
-        ComportReplyLoaded();
+        //ComportReplyLoaded();
         break;
       case LSMOD_CONTROL_READ:
         ComportReplyAck(LSMOD_CONTROL_READ);
-        /*(abs(floor(Adxl330_AnglesReal.roll)) >> 8) | ((Adxl330_AnglesReal.roll < 0) ? (1 << 7) : 0),
-        abs(floor(Adxl330_AnglesReal.roll)),
-        (abs(floor(Adxl330_AnglesReal.pitch)) >> 8) | ((Adxl330_AnglesReal.pitch < 0) ? (1 << 7) : 0),
-        abs(floor(Adxl330_AnglesReal.pitch))*/
-        ComportReplyData((abs(Adxl330_AccelReal.x) >> 8) | ((Adxl330_AccelReal.x < 0) ? (1 << 7) : 0),
-                         abs(Adxl330_AccelReal.x),
-                         (abs(Adxl330_AccelReal.y) >> 8) | ((Adxl330_AccelReal.y < 0) ? (1 << 7) : 0),
-                         abs(Adxl330_AccelReal.y));
+        //TODO: ComportReplyData(...) Read and send wav from dataflash
         break;
       default:
         ComportReplyError(packet->cmd);
@@ -145,14 +143,12 @@ int main(void)
     {
       Adxl330_MotionDetected = false;
       led2Toggle();
-      _delay_ms(200);
       // TODO: Play music
     }
     if (Adxl330_HitDetected)
     {
       Adxl330_HitDetected = false;
       led1Toggle();
-      _delay_ms(200);
       // TODO: Play music
     }
   #endif    

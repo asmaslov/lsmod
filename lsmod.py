@@ -2,6 +2,8 @@ import sys
 import threading
 import serial, time
 import serial.tools.list_ports
+import wave, struct
+import numpy as np
 from ui_lsmod import Ui_Lsmod
 from PyQt4 import QtCore, QtGui
 from PyQt4.phonon import Phonon
@@ -25,13 +27,6 @@ LSMOD_REPLY_ACK    = 0x01
 LSMOD_REPLY_LOADED = 0x02
 LSMOD_REPLY_STAT   = 0x10
 LSMOD_REPLY_DATA   = 0x11
-
-def isint(value):
-    try:
-        int(value)
-        return True
-    except ValueError:
-        return False
 
 class MainWindow(QtGui.QMainWindow):
     ui = Ui_Lsmod()
@@ -86,7 +81,7 @@ class MainWindow(QtGui.QMainWindow):
             group.addAction(node)
             self.ui.menuPort.addAction(node)
         self.tim.timeout.connect(self.readPort)
-        self.get.timeout.connect(self.getData)
+        self.get.timeout.connect(self.getStat)
 
     def closeEvent(self, event):
         choice = QtGui.QMessageBox.question(self, 'Exit', 'Are you sure?', QtGui.QMessageBox.Yes| QtGui.QMessageBox.No)
@@ -130,11 +125,11 @@ class MainWindow(QtGui.QMainWindow):
         else:
             self.ui.statusbar.showMessage('Port not open')
 
-    def getData(self):
-        self.sendPacket(LSMOD_CONTROL_READ)
+    def getStat(self):
+        self.sendPacket(LSMOD_CONTROL_STAT)
         
     def on_pushButtonOpenTurnOnFile_released(self):
-        name = QtGui.QFileDialog.getOpenFileName(self)
+        name = QtGui.QFileDialog.getOpenFileName(self, filter = "Wav files (*.wav)")
         if QtCore.QFile.exists(name):
             self.turnOnFile = name
             self.ui.lineEditTurnOnFile.setText(name)
@@ -156,7 +151,7 @@ class MainWindow(QtGui.QMainWindow):
             self.turnOnFilePlay = False
 
     def on_pushButtonOpenHumFile_released(self):
-        name = QtGui.QFileDialog.getOpenFileName(self)
+        name = QtGui.QFileDialog.getOpenFileName(self, filter = "Wav files (*.wav)")
         if QtCore.QFile.exists(name):
             self.humFile = name
             self.ui.lineEditHumFile.setText(name)
@@ -179,7 +174,7 @@ class MainWindow(QtGui.QMainWindow):
             self.hum.stop()
 
     def on_pushButtonOpenSwingFile_released(self):
-        name = QtGui.QFileDialog.getOpenFileName(self)
+        name = QtGui.QFileDialog.getOpenFileName(self, filter = "Wav files (*.wav)")
         if QtCore.QFile.exists(name):
             self.swingFile = name
             self.ui.lineEditSwingFile.setText(name)
@@ -202,7 +197,7 @@ class MainWindow(QtGui.QMainWindow):
             self.swing.stop()
         
     def on_pushButtonOpenHitFile_released(self):
-        name = QtGui.QFileDialog.getOpenFileName(self)
+        name = QtGui.QFileDialog.getOpenFileName(self, filter = "Wav files (*.wav)")
         if QtCore.QFile.exists(name):
             self.hitFile = name
             self.ui.lineEditHitFile.setText(name)
@@ -225,7 +220,7 @@ class MainWindow(QtGui.QMainWindow):
             self.hit.stop()
         
     def on_pushButtonOpenClashFile_released(self):
-        name = QtGui.QFileDialog.getOpenFileName(self)
+        name = QtGui.QFileDialog.getOpenFileName(self, filter = "Wav files (*.wav)")
         if QtCore.QFile.exists(name):
             self.clashFile = name
             self.ui.lineEditClashFile.setText(name)
@@ -248,7 +243,7 @@ class MainWindow(QtGui.QMainWindow):
             self.clash.stop()
             
     def on_pushButtonOpenTurnOffFile_released(self):
-        name = QtGui.QFileDialog.getOpenFileName(self)
+        name = QtGui.QFileDialog.getOpenFileName(self, filter = "Wav files (*.wav)")
         if QtCore.QFile.exists(name):
             self.turnOffFile = name
             self.ui.lineEditTurnOffFile.setText(name)
@@ -271,10 +266,24 @@ class MainWindow(QtGui.QMainWindow):
             self.turnOff.stop()
 
     def on_pushButtonLoad_released(self):
-        self.ui.statusbar.showMessage('Load')
-        #with open(name, 'r') as file:
-            #file.close()
-
+        wav = wave.open(str(self.turnOnFile), 'rb')
+        (nchannels, sampwidth, framerate, nframes, comptype, compname) = wav.getparams()
+        if comptype == 'NONE':
+            print wav.getparams()
+            frames = wav.readframes(nframes * nchannels)
+            out = struct.unpack_from('%dh' % nframes * nchannels, frames)
+            if nchannels == 2:
+                left = np.array(out[0:][::2], dtype = np.int16)
+                right = np.array(out[1:][::2], dtype = np.int16)
+            else:
+                left = np.array(out, dtype = np.int16)
+                right = left
+            self.sendPacket(LSMOD_CONTROL_LOAD)
+            #TODO: Send idex, framerate, total samples count
+            #TODO: Send samples by block, each same size, WAV_BLOCK_SIZE
+        else:
+            self.ui.statusbar.showMessage('Compressed file not supported yet')
+       
     @QtCore.pyqtSlot(bool)
     def on_pushButtonTest_clicked(self, arg):
         if arg:
@@ -362,18 +371,22 @@ class MainWindow(QtGui.QMainWindow):
                             self.ui.statusbar.showMessage('Acknowledged')
                         elif packet[3] == LSMOD_REPLY_LOADED:
                             self.ui.statusbar.showMessage('Loaded')
-                        elif packet[3] == LSMOD_REPLY_DATA:
+                        elif packet[3] == LSMOD_REPLY_STAT:
                             if len(packet) > 6:
                                 for i in range (0, (len(packet) - 6)):
                                     data.append(packet[4 + i])
-                                rotAngle = int(((data[0] & 0x7F) << 8) | data[1])
+                                realX = int(((data[0] & 0x7F) << 8) | data[1])
                                 if (data[0] & 0x80) != 0:
-                                    rotAngle = -rotAngle
-                                tiltAngle = int(((data[2] & 0x7F) << 8) | data[3])
+                                    realX = -realX
+                                realY = int(((data[2] & 0x7F) << 8) | data[3])
                                 if (data[2] & 0x80) != 0:
-                                    tiltAngle = -tiltAngle
-                                self.ui.lineEditRealRot.setText(str(rotAngle))
-                                self.ui.lineEditRealTilt.setText(str(tiltAngle))
+                                    realY = -realY
+                                realZ = int(((data[4] & 0x7F) << 8) | data[5])
+                                if (data[4] & 0x80) != 0:
+                                    realZ = -realZ
+                                self.ui.lineEditRealX.setText(str(realX))
+                                self.ui.lineEditRealY.setText(str(realY))
+                                self.ui.lineEditRealZ.setText(str(realZ))
                             else:
                                 self.ui.statusbar.showMessage('No data')
                         elif packet[3] == LSMOD_REPLY_ERROR:

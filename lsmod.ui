@@ -378,7 +378,7 @@
       <x>370</x>
       <y>60</y>
       <width>120</width>
-      <height>221</height>
+      <height>251</height>
      </rect>
     </property>
     <property name="title">
@@ -422,7 +422,7 @@
       <enum>QFrame::Raised</enum>
      </property>
     </widget>
-    <widget class="QLineEdit" name="lineEditRealRot">
+    <widget class="QLineEdit" name="lineEditRealX">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -432,7 +432,7 @@
       </rect>
      </property>
     </widget>
-    <widget class="QLineEdit" name="lineEditRealTilt">
+    <widget class="QLineEdit" name="lineEditRealY">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -442,8 +442,18 @@
       </rect>
      </property>
     </widget>
+    <widget class="QLineEdit" name="lineEditRealZ">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>220</y>
+       <width>101</width>
+       <height>21</height>
+      </rect>
+     </property>
+    </widget>
    </widget>
-   <widget class="QGroupBox" name="groupBoxConnection">
+   <widget class="QGroupBox" name="groupBoxStatus">
     <property name="geometry">
      <rect>
       <x>370</x>
@@ -453,7 +463,7 @@
      </rect>
     </property>
     <property name="title">
-     <string>Connection</string>
+     <string>Status</string>
     </property>
     <widget class="QLabel" name="labelConnection">
      <property name="geometry">
