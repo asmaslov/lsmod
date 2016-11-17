@@ -4,6 +4,7 @@ import serial, time
 import serial.tools.list_ports
 from ui_lsmod import Ui_Lsmod
 from PyQt4 import QtCore, QtGui
+from PyQt4.phonon import Phonon
 
 LSMOD_ADDR = 0x21
 PC_ADDR    = 0xA1
@@ -40,16 +41,41 @@ class MainWindow(QtGui.QMainWindow):
     get = QtCore.QTimer()
     getPeriodMs = 250
     triggerTestStatus = 0
+    turnOnFile = str()
+    turnOn = Phonon.MediaObject()
     turnOnFilePlay = False
+    humFile = str()
+    hum = Phonon.MediaObject()
     humFilePlay = False
+    swingFile = str()
+    swing = Phonon.MediaObject()
     swingFilePlay = False
+    hitFile = str()
+    hit = Phonon.MediaObject()
     hitFilePlay = False
+    clashFile = str()
+    clash = Phonon.MediaObject()
     clashFilePlay = False
+    turnOffFile = str()
+    turnOff = Phonon.MediaObject()
     turnOffFilePlay = False
     
     def __init__(self):
         super(MainWindow, self).__init__()
         self.ui.setupUi(self)
+        self.audioOutput = Phonon.AudioOutput(Phonon.MusicCategory, self)
+        Phonon.createPath(self.turnOn, self.audioOutput)
+        self.turnOn.stateChanged.connect(self.tunOnPlayStateChanged)
+        Phonon.createPath(self.hum, self.audioOutput)
+        self.hum.stateChanged.connect(self.humPlayStateChanged)
+        Phonon.createPath(self.swing, self.audioOutput)
+        self.swing.stateChanged.connect(self.swingPlayStateChanged)
+        Phonon.createPath(self.hit, self.audioOutput)
+        self.hit.stateChanged.connect(self.hitPlayStateChanged)
+        Phonon.createPath(self.clash, self.audioOutput)
+        self.clash.stateChanged.connect(self.clashPlayStateChanged)
+        Phonon.createPath(self.turnOff, self.audioOutput)
+        self.turnOff.stateChanged.connect(self.tunOffPlayStateChanged)
         group = QtGui.QActionGroup(self.ui.menuPort, exclusive = True)
         self.signalMapper = QtCore.QSignalMapper(self)
         self.signalMapper.mapped[str].connect(self.setPort)
@@ -106,79 +132,148 @@ class MainWindow(QtGui.QMainWindow):
 
     def getData(self):
         self.sendPacket(LSMOD_CONTROL_READ)
-            
+        
     def on_pushButtonOpenTurnOnFile_released(self):
-        self.ui.statusbar.showMessage('Open Turn On File')
-        name = QtGui.QFileDialog.getSaveFileName(self)
+        name = QtGui.QFileDialog.getOpenFileName(self)
         if QtCore.QFile.exists(name):
-            with open(name, 'r') as file:
-                file.close()
+            self.turnOnFile = name
+            self.ui.lineEditTurnOnFile.setText(name)
 
-    def on_pushButtonOpenTurnOnFilePlay_released(self):
+    def on_pushButtonTurnOnFilePlay_released(self):
         if not self.turnOnFilePlay:
-            self.ui.pushButtonOpenTurnOnFilePlay.setText('||')
+            self.ui.pushButtonTurnOnFilePlay.setText('||')
             self.turnOnFilePlay = True
+            self.turnOn.setCurrentSource(Phonon.MediaSource(self.turnOnFile))
+            self.turnOn.play()
         else:
-            self.ui.pushButtonOpenTurnOnFilePlay.setText('>')
+            self.ui.pushButtonTurnOnFilePlay.setText('>')
+            self.turnOnFilePlay = False
+            self.turnOn.stop()
+
+    def tunOnPlayStateChanged(self, newstate, oldstate):
+        if newstate == Phonon.StoppedState or newstate == Phonon.PausedState:
+            self.ui.pushButtonTurnOnFilePlay.setText('>')
             self.turnOnFilePlay = False
 
     def on_pushButtonOpenHumFile_released(self):
-        self.ui.statusbar.showMessage('Open Hum File')
+        name = QtGui.QFileDialog.getOpenFileName(self)
+        if QtCore.QFile.exists(name):
+            self.humFile = name
+            self.ui.lineEditHumFile.setText(name)
 
-    def on_pushButtonOpenHumFilePlay_released(self):
+    def on_pushButtonHumFilePlay_released(self):
         if not self.humFilePlay:
-            self.ui.pushButtonOpenHumFilePlay.setText('||')
+            self.ui.pushButtonHumFilePlay.setText('||')
             self.humFilePlay = True
+            self.hum.setCurrentSource(Phonon.MediaSource(self.humFile))
+            self.hum.play()
         else:
-            self.ui.pushButtonOpenHumFilePlay.setText('>')
+            self.ui.pushButtonHumFilePlay.setText('>')
             self.humFilePlay = False
+            self.hum.stop()
 
-    def on_pushButtonOpenSwingFile_pressed(self):
-        self.ui.statusbar.showMessage('Open Swing File')
+    def humPlayStateChanged(self, newstate, oldstate):
+        if newstate == Phonon.StoppedState or newstate == Phonon.PausedState:
+            self.ui.pushButtonHumFilePlay.setText('>')
+            self.humFilePlay = False
+            self.hum.stop()
 
-    def on_pushButtonOpenSwingFilePlay_pressed(self):
+    def on_pushButtonOpenSwingFile_released(self):
+        name = QtGui.QFileDialog.getOpenFileName(self)
+        if QtCore.QFile.exists(name):
+            self.swingFile = name
+            self.ui.lineEditSwingFile.setText(name)
+
+    def on_pushButtonSwingFilePlay_released(self):
         if not self.swingFilePlay:
-            self.ui.pushButtonOpenSwingFilePlay.setText('||')
+            self.ui.pushButtonSwingFilePlay.setText('||')
             self.swingFilePlay = True
+            self.swing.setCurrentSource(Phonon.MediaSource(self.swingFile))
+            self.swing.play()
         else:
-            self.ui.pushButtonOpenSwingFilePlay.setText('>')
+            self.ui.pushButtonSwingFilePlay.setText('>')
             self.swingFilePlay = False
+            self.swing.stop()
+
+    def swingPlayStateChanged(self, newstate, oldstate):
+        if newstate == Phonon.StoppedState or newstate == Phonon.PausedState:
+            self.ui.pushButtonSwingFilePlay.setText('>')
+            self.swingFilePlay = False
+            self.swing.stop()
         
     def on_pushButtonOpenHitFile_released(self):
-        self.ui.statusbar.showMessage('Open Hit File')
+        name = QtGui.QFileDialog.getOpenFileName(self)
+        if QtCore.QFile.exists(name):
+            self.hitFile = name
+            self.ui.lineEditHitFile.setText(name)
 
-    def on_pushButtonOpenHitFilePlay_released(self):
+    def on_pushButtonHitFilePlay_released(self):
         if not self.hitFilePlay:
-            self.ui.pushButtonOpenHitFilePlay.setText('||')
+            self.ui.pushButtonHitFilePlay.setText('||')
             self.hitFilePlay = True
+            self.hit.setCurrentSource(Phonon.MediaSource(self.hitFile))
+            self.hit.play()
         else:
-            self.ui.pushButtonOpenHitFilePlay.setText('>')
+            self.ui.pushButtonHitFilePlay.setText('>')
             self.hitFilePlay = False
-        
-    def on_pushButtonOpenClashFile_pressed(self):
-        self.ui.statusbar.showMessage('Open Clash File')
+            self.hit.stop()
 
-    def on_pushButtonOpenClashFilePlay_pressed(self):
+    def hitPlayStateChanged(self, newstate, oldstate):
+        if newstate == Phonon.StoppedState or newstate == Phonon.PausedState:
+            self.ui.pushButtonHitFilePlay.setText('>')
+            self.hitFilePlay = False
+            self.hit.stop()
+        
+    def on_pushButtonOpenClashFile_released(self):
+        name = QtGui.QFileDialog.getOpenFileName(self)
+        if QtCore.QFile.exists(name):
+            self.clashFile = name
+            self.ui.lineEditClashFile.setText(name)
+
+    def on_pushButtonClashFilePlay_released(self):
         if not self.clashFilePlay:
-            self.ui.pushButtonOpenClashFilePlay.setText('||')
+            self.ui.pushButtonClashFilePlay.setText('||')
             self.clashFilePlay = True
+            self.clash.setCurrentSource(Phonon.MediaSource(self.clashFile))
+            self.clash.play()
         else:
-            self.ui.pushButtonOpenClashFilePlay.setText('>')
+            self.ui.pushButtonClashFilePlay.setText('>')
             self.clashFilePlay = False
+            self.clash.stop()
+
+    def clashPlayStateChanged(self, newstate, oldstate):
+        if newstate == Phonon.StoppedState or newstate == Phonon.PausedState:
+            self.ui.pushButtonClashFilePlay.setText('>')
+            self.clashFilePlay = False
+            self.clash.stop()
             
     def on_pushButtonOpenTurnOffFile_released(self):
-        self.ui.statusbar.showMessage('Open Turn Off File')
+        name = QtGui.QFileDialog.getOpenFileName(self)
+        if QtCore.QFile.exists(name):
+            self.turnOffFile = name
+            self.ui.lineEditTurnOffFile.setText(name)
 
-    def on_pushButtonOpenTurnOffFilePlay_released(self):
+    def on_pushButtonTurnOffFilePlay_released(self):
         if not self.turnOffFilePlay:
-            self.ui.pushButtonOpenTurnOffFilePlay.setText('||')
+            self.ui.pushButtonTurnOffFilePlay.setText('||')
             self.turnOffFilePlay = True
+            self.turnOff.setCurrentSource(Phonon.MediaSource(self.turnOffFile))
+            self.turnOff.play()
         else:
-            self.ui.pushButtonOpenTurnOffFilePlay.setText('>')
+            self.ui.pushButtonTurnOffFilePlay.setText('>')
             self.turnOffFilePlay = False
+            self.turnOff.stop()
+
+    def tunOffPlayStateChanged(self, newstate, oldstate):
+        if newstate == Phonon.StoppedState or newstate == Phonon.PausedState:
+            self.ui.pushButtonTurnOffFilePlay.setText('>')
+            self.turnOffFilePlay = False
+            self.turnOff.stop()
 
     def on_pushButtonLoad_released(self):
         self.ui.statusbar.showMessage('Load')
+        #with open(name, 'r') as file:
+            #file.close()
 
     @QtCore.pyqtSlot(bool)
     def on_pushButtonTest_clicked(self, arg):

@@ -290,7 +290,7 @@
       </rect>
      </property>
     </widget>
-    <widget class="QPushButton" name="pushButtonOpenTurnOnFilePlay">
+    <widget class="QPushButton" name="pushButtonTurnOnFilePlay">
      <property name="geometry">
       <rect>
        <x>310</x>
@@ -303,7 +303,7 @@
       <string>&gt;</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="pushButtonOpenHumFilePlay">
+    <widget class="QPushButton" name="pushButtonHumFilePlay">
      <property name="geometry">
       <rect>
        <x>310</x>
@@ -316,7 +316,7 @@
       <string>&gt;</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="pushButtonOpenSwingFilePlay">
+    <widget class="QPushButton" name="pushButtonSwingFilePlay">
      <property name="geometry">
       <rect>
        <x>310</x>
@@ -329,7 +329,7 @@
       <string>&gt;</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="pushButtonOpenHitFilePlay">
+    <widget class="QPushButton" name="pushButtonHitFilePlay">
      <property name="geometry">
       <rect>
        <x>310</x>
@@ -342,7 +342,7 @@
       <string>&gt;</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="pushButtonOpenClashFilePlay">
+    <widget class="QPushButton" name="pushButtonClashFilePlay">
      <property name="geometry">
       <rect>
        <x>310</x>
@@ -355,7 +355,7 @@
       <string>&gt;</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="pushButtonOpenTurnOffFilePlay">
+    <widget class="QPushButton" name="pushButtonTurnOffFilePlay">
      <property name="geometry">
       <rect>
        <x>310</x>
