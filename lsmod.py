@@ -82,9 +82,10 @@ class MainWindow(QtGui.QMainWindow):
             self.ui.menuPort.addAction(node)
         self.tim.timeout.connect(self.readPort)
         self.get.timeout.connect(self.getStat)
+        self.ui.textEdit.setReadOnly(True)
 
     def closeEvent(self, event):
-        choice = QtGui.QMessageBox.question(self, 'Exit', 'Are you sure?', QtGui.QMessageBox.Yes| QtGui.QMessageBox.No)
+        choice = QtGui.QMessageBox.question(self, 'Exit', 'Are you sure?', QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
         if choice == QtGui.QMessageBox.Yes:
             if self.ser.isOpen():
                 self.ser.close()
@@ -123,7 +124,7 @@ class MainWindow(QtGui.QMainWindow):
             print ' '.join('0x{:02X}'.format(x) for x in packet)
             self.ser.write(packet)
         else:
-            self.ui.statusbar.showMessage('Port not open')
+            self.ui.textEdit.append('Port not open')
 
     def getStat(self):
         self.sendPacket(LSMOD_CONTROL_STAT)
@@ -266,23 +267,34 @@ class MainWindow(QtGui.QMainWindow):
             self.turnOff.stop()
 
     def on_pushButtonLoad_released(self):
-        wav = wave.open(str(self.turnOnFile), 'rb')
-        (nchannels, sampwidth, framerate, nframes, comptype, compname) = wav.getparams()
-        if comptype == 'NONE':
-            print wav.getparams()
+        self.ui.progressBar.setValue(10)
+        if QtCore.QFile.exists(self.turnOnFile):
+            self.ui.textEdit.append('Loading %s' % QtCore.QFileInfo(self.turnOnFile).fileName())
+            wav = wave.open(str(self.turnOnFile), 'rb')
+            (nchannels, sampwidth, framerate, nframes, comptype, compname) = wav.getparams()
+            if sampwidth != 2:
+                self.ui.textEdit.append('Only 16 bit width sample supported')
+                return
+            if framerate != 44100:
+                self.ui.textEdit.append('Only 44100 framerate supported')
+                return
+            if comptype != 'NONE':
+                self.ui.textEdit.append('Compressed file not supported yet')
+                return
             frames = wav.readframes(nframes * nchannels)
-            out = struct.unpack_from('%dh' % nframes * nchannels, frames)
+            out = struct.unpack_from('%dh' %(nframes * nchannels), frames)
             if nchannels == 2:
+                self.ui.textEdit.append('Stereo sound detected - merging')
                 left = np.array(out[0:][::2], dtype = np.int16)
                 right = np.array(out[1:][::2], dtype = np.int16)
+                #TODO: Merge stereo to mono
             else:
                 left = np.array(out, dtype = np.int16)
                 right = left
+            print ' '.join('0x{:04X}'.format(x + 0x8000) for x in left[0:100])
             self.sendPacket(LSMOD_CONTROL_LOAD)
             #TODO: Send idex, framerate, total samples count
             #TODO: Send samples by block, each same size, WAV_BLOCK_SIZE
-        else:
-            self.ui.statusbar.showMessage('Compressed file not supported yet')
        
     @QtCore.pyqtSlot(bool)
     def on_pushButtonTest_clicked(self, arg):
@@ -330,7 +342,7 @@ class MainWindow(QtGui.QMainWindow):
         try: 
             self.ser.open()
         except Exception, e:
-            self.ui.statusbar.showMessage('Port ' + name + ' not available')
+            self.ui.textEdit.append('Port ' + name + ' not available')
         if self.ser.isOpen():
             self.tim.start(self.timPeriodMs)
             self.ui.labelConnection.setText('Connected')
@@ -338,7 +350,7 @@ class MainWindow(QtGui.QMainWindow):
             self.ui.labelConnection.setFont(font)
             self.ui.pushButtonLoad.setEnabled(True)
             self.ui.pushButtonTest.setEnabled(True)
-            self.ui.statusbar.showMessage('Connected to ' + name)
+            self.ui.textEdit.append('Connected to ' + name)
 
     def readPort(self):
         data = bytearray()
@@ -368,9 +380,9 @@ class MainWindow(QtGui.QMainWindow):
                 if (crc & 0xFF) == packet[-2]:
                     if (packet[0] == LSMOD_PACKET_HDR) and (packet[1] == PC_ADDR) and (packet[2] == LSMOD_ADDR):
                         if packet[3] == LSMOD_REPLY_ACK:
-                            self.ui.statusbar.showMessage('Acknowledged')
+                            self.ui.textEdit.append('Acknowledged')
                         elif packet[3] == LSMOD_REPLY_LOADED:
-                            self.ui.statusbar.showMessage('Loaded')
+                            self.ui.textEdit.append('Loaded')
                         elif packet[3] == LSMOD_REPLY_STAT:
                             if len(packet) > 6:
                                 for i in range (0, (len(packet) - 6)):
@@ -388,11 +400,11 @@ class MainWindow(QtGui.QMainWindow):
                                 self.ui.lineEditRealY.setText(str(realY))
                                 self.ui.lineEditRealZ.setText(str(realZ))
                             else:
-                                self.ui.statusbar.showMessage('No data')
+                                self.ui.textEdit.append('No data')
                         elif packet[3] == LSMOD_REPLY_ERROR:
-                            self.ui.statusbar.showMessage('Error')
+                            self.ui.textEdit.append('Error')
                         else:
-                            self.ui.statusbar.showMessage('Unknown')
+                            self.ui.textEdit.append('Unknown')
 
 app = QtGui.QApplication(sys.argv)
 main = MainWindow()

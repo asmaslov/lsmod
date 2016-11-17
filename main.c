@@ -1,4 +1,5 @@
 #include <avr/io.h>
+#include <avr/eeprom.h>
 #include <avr/interrupt.h>
 #include <avr/wdt.h>
 #include <inttypes.h>
@@ -16,6 +17,12 @@
 #endif
 
 #include "debug.h"
+
+uint32_t EEMEM tracksAddr[MAX_TRACKS];
+uint32_t EEMEM tracksLen[MAX_TRACKS];
+
+static uint8_t trackIdx = 0;
+static uint32_t trackPos = 0;
 
 static void initBoard(void)
 {
@@ -71,7 +78,6 @@ static void commandHandler(void* args)
         ComportReplyAck(LSMOD_CONTROL_PING);
         break;
       case LSMOD_CONTROL_STAT:
-        ComportReplyAck(LSMOD_CONTROL_STAT);
         ComportReplyStat((abs(Adxl330_AccelReal.x) >> 8) | ((Adxl330_AccelReal.x < 0) ? (1 << 7) : 0),
                          abs(Adxl330_AccelReal.x),
                          (abs(Adxl330_AccelReal.y) >> 8) | ((Adxl330_AccelReal.y < 0) ? (1 << 7) : 0),
@@ -79,8 +85,18 @@ static void commandHandler(void* args)
                          (abs(Adxl330_AccelReal.z) >> 8) | ((Adxl330_AccelReal.z < 0) ? (1 << 7) : 0),
                          abs(Adxl330_AccelReal.z));
         break;
-      case LSMOD_CONTROL_LOAD:
-        ComportReplyAck(LSMOD_CONTROL_LOAD);
+      case LSMOD_CONTROL_LOAD_BEGIN:
+        if (packet->data[0] == trackIdx)
+        {
+          eeprom_write_dword(tracksAddr[0], 0);
+          eeprom_write_dword(tracksLen[0], 0);
+          trackPos = 0;
+          ComportReplyAck(LSMOD_CONTROL_LOAD_BEGIN);
+        }      
+        else
+        {
+          ComportReplyError(LSMOD_CONTROL_LOAD_BEGIN);
+        }        
         //TODO: Load wav into dataflash
         //ComportReplyLoaded();
         break;
