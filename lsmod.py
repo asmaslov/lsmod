@@ -129,11 +129,12 @@ class MainWindow(QtGui.QMainWindow):
                     else:
                         packet.append(data[i])
                     crc = crc + data[i]
+            crc = crc & 0xFF
             if (crc == LSMOD_PACKET_HDR) or (crc == LSMOD_PACKET_MSK) or (crc == LSMOD_PACKET_END):
                 packet.append(LSMOD_PACKET_MSK)
                 packet.append(0xFF - crc)
             else:
-                packet.append(crc & 0xFF)
+                packet.append(crc)
             packet.append(LSMOD_PACKET_END)
             print ' '.join('0x{:02X}'.format(x) for x in packet)
             self.ser.write(packet)
@@ -422,13 +423,11 @@ class MainWindow(QtGui.QMainWindow):
                 if (crc & 0xFF) == packet[-2]:
                     if (packet[0] == LSMOD_PACKET_HDR) and (packet[1] == PC_ADDR) and (packet[2] == LSMOD_ADDR):
                         if packet[3] == LSMOD_REPLY_ACK:
-                            #self.ui.textEdit.append('Acknowledged')
                             if packet[4] == LSMOD_CONTROL_LOAD_BEGIN:
                                 self.loadActivated.emit()
                             elif packet[4] == LSMOD_CONTROL_LOAD_END:
                                 self.loadEnd.emit()
                         elif packet[3] == LSMOD_REPLY_LOADED:
-                            #self.ui.textEdit.append('Loaded')
                             self.trackPos = self.trackPos + packet[4]
                             self.loadContinue.emit()
                         elif packet[3] == LSMOD_REPLY_STAT:
