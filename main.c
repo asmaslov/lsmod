@@ -95,8 +95,8 @@ static void commandHandler(void* args)
       case LSMOD_CONTROL_LOAD_BEGIN:
         if (packet->data[0] == trackIdx)
         {
-          eeprom_write_dword(tracksAddr[trackIdx], 0);
-          eeprom_write_dword(tracksLen[trackIdx], 0);
+          eeprom_write_dword(&tracksAddr[trackIdx], 0);
+          eeprom_write_dword(&tracksLen[trackIdx], 0);
           trackPos = 0;
           loadActivated = true;
           ComportReplyAck(LSMOD_CONTROL_LOAD_BEGIN);
@@ -110,25 +110,30 @@ static void commandHandler(void* args)
         if (loadActivated)
         {
           len = packet->len;
-          //DataflashWrite(packet->data, (tracksAddr[trackIdx] + trackPos), packet->len, replyLoaded);
-          _delay_ms(100);
-          ComportReplyLoaded(packet->len);
-          trackPos += packet->len;
-          led1Toggle();
+          if (!DataflashWrite(packet->data, (eeprom_read_dword(&tracksAddr[trackIdx]) + trackPos), len, replyLoaded))
+          {
+            loadActivated = false;
+            ComportReplyError(LSMOD_CONTROL_LOAD);
+          }
+          else
+          {
+            trackPos += packet->len;
+            led2Toggle();
+          }
         }
         else
         {
           ComportReplyError(LSMOD_CONTROL_LOAD);
-        }          
+        }
         break;
       case LSMOD_CONTROL_LOAD_END:
         if ((packet->data[0] == trackIdx) && loadActivated)
         {
-          eeprom_write_dword(tracksLen[trackIdx], (trackPos + 1));
+          eeprom_write_dword(&tracksLen[trackIdx], (trackPos + 1));
           loadActivated = false;
           ComportReplyAck(LSMOD_CONTROL_LOAD_END);
           trackIdx++;
-          led1(false);
+          led2(false);
         }
         else
         {
@@ -141,7 +146,7 @@ static void commandHandler(void* args)
         break;
       default:
         ComportReplyError(packet->cmd);
-    }      
+    }
   }
   else
   {

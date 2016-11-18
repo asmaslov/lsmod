@@ -61,15 +61,12 @@
 #define DB321_SECTOR_NUMBER          17
 #define DB321_SIZE                   (DB321_PAGE_NUM * DB321_PAGE_SIZE)  // 8192 * 528 = 4325376 bytes = 4224 Kbytes = 4 Mbytes + 128 Kbytes
 
-#define DB321_BUFFER_SIZE            (8 + DB321_PAGE_SIZE)
-
-#define DATAFLASH_DATA_STACK_SIZE    (2 * DB321_BUFFER_SIZE)
+#define DB321_BUFFER_SIZE            (8 + LSMOD_DATA_MAX_LEN / 2)
 
 typedef void (*DataflashCommonCallback)(void);
 
 bool DataflashInit(void);
-bool DataflashRead(uint32_t src, uint8_t *dst, uint32_t size, DataflashCommonCallback callback);
-bool DataflashWrite(uint8_t *src, uint32_t dst, uint32_t size, DataflashCommonCallback callback);
-bool DataflashErase(uint32_t dst, uint32_t size, DataflashCommonCallback callback);
+bool DataflashRead(uint32_t src, uint8_t *dst, uint8_t size, DataflashCommonCallback callback);
+bool DataflashWrite(uint8_t *src, uint32_t dst, uint8_t size, DataflashCommonCallback callback);
 
 #endif // __DATAFLASH_AT45DB321B_H_
