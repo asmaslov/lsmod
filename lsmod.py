@@ -7,9 +7,12 @@ import numpy as np
 from ui_lsmod import Ui_Lsmod
 from PyQt4 import QtCore, QtGui
 from PyQt4.phonon import Phonon
+from PyQt4.QtCore import QObject, pyqtSignal, pyqtSlot
 
 LSMOD_ADDR = 0x21
 PC_ADDR    = 0xA1
+
+MAX_TRACKS = 6
 
 LSMOD_BAUDRATE = 57600
 
@@ -17,10 +20,16 @@ LSMOD_PACKET_HDR = 0xDA
 LSMOD_PACKET_MSK = 0xB0
 LSMOD_PACKET_END = 0xBA
 
-LSMOD_CONTROL_PING = 0x00
-LSMOD_CONTROL_STAT = 0x01
-LSMOD_CONTROL_LOAD = 0x02
-LSMOD_CONTROL_READ = 0x03
+LSMOD_DATA_SRV_LEN =  6
+LSMOD_DATA_MAX_LEN = 64
+
+LSMOD_CONTROL_PING       = 0x00
+LSMOD_CONTROL_STAT       = 0x01
+LSMOD_CONTROL_LOAD       = 0x02
+LSMOD_CONTROL_LOAD_BEGIN = 0x10
+LSMOD_CONTROL_LOAD       = 0x11
+LSMOD_CONTROL_LOAD_END   = 0x12
+LSMOD_CONTROL_READ       = 0x20
 
 LSMOD_REPLY_ERROR  = 0x00
 LSMOD_REPLY_ACK    = 0x01
@@ -32,9 +41,9 @@ class MainWindow(QtGui.QMainWindow):
     ui = Ui_Lsmod()
     ser = serial.Serial()
     tim = QtCore.QTimer()
-    timPeriodMs = 100
+    timPeriodMs = 10
     get = QtCore.QTimer()
-    getPeriodMs = 250
+    getPeriodMs = 100
     triggerTestStatus = 0
     turnOnFile = str()
     turnOn = Phonon.MediaObject()
@@ -54,6 +63,9 @@ class MainWindow(QtGui.QMainWindow):
     turnOffFile = str()
     turnOff = Phonon.MediaObject()
     turnOffFilePlay = False
+    loadActivated = pyqtSignal()
+    loadContinue = pyqtSignal()
+    loadEnd = pyqtSignal()
     
     def __init__(self):
         super(MainWindow, self).__init__()
@@ -83,6 +95,10 @@ class MainWindow(QtGui.QMainWindow):
         self.tim.timeout.connect(self.readPort)
         self.get.timeout.connect(self.getStat)
         self.ui.textEdit.setReadOnly(True)
+        self.loadActivated.connect(self.loadSamples)
+        self.loadContinue.connect(self.loadSamples)
+        self.loadEnd.connect(self.endLoad)
+        self.ui.horizontalSliderX.enabledChange(False)
 
     def closeEvent(self, event):
         choice = QtGui.QMessageBox.question(self, 'Exit', 'Are you sure?', QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
@@ -106,8 +122,6 @@ class MainWindow(QtGui.QMainWindow):
             packet.append(cmd)
             crc = crc + cmd
             if (len(data) > 0):
-                packet.append(len(data))
-                crc = crc + len(data)
                 for i in range (0, len(data)):
                     if (data[i] == LSMOD_PACKET_HDR) or (data[i] == LSMOD_PACKET_MSK) or (data[i] == LSMOD_PACKET_END):
                         packet.append(LSMOD_PACKET_MSK)
@@ -267,8 +281,8 @@ class MainWindow(QtGui.QMainWindow):
             self.turnOff.stop()
 
     def on_pushButtonLoad_released(self):
-        self.ui.progressBar.setValue(10)
         if QtCore.QFile.exists(self.turnOnFile):
+            self.trackIdx = 0
             self.ui.textEdit.append('Loading %s' % QtCore.QFileInfo(self.turnOnFile).fileName())
             wav = wave.open(str(self.turnOnFile), 'rb')
             (nchannels, sampwidth, framerate, nframes, comptype, compname) = wav.getparams()
@@ -285,16 +299,44 @@ class MainWindow(QtGui.QMainWindow):
             out = struct.unpack_from('%dh' %(nframes * nchannels), frames)
             if nchannels == 2:
                 self.ui.textEdit.append('Stereo sound detected - merging')
-                left = np.array(out[0:][::2], dtype = np.int16)
-                right = np.array(out[1:][::2], dtype = np.int16)
+                self.left = np.array(out[0:][::2], dtype = np.int32)
+                self.right = np.array(out[1:][::2], dtype = np.int32)
                 #TODO: Merge stereo to mono
             else:
-                left = np.array(out, dtype = np.int16)
-                right = left
-            print ' '.join('0x{:04X}'.format(x + 0x8000) for x in left[0:100])
-            self.sendPacket(LSMOD_CONTROL_LOAD)
-            #TODO: Send idex, framerate, total samples count
-            #TODO: Send samples by block, each same size, WAV_BLOCK_SIZE
+                self.left = np.array(out, dtype = np.int32)
+                self.right = self.left
+            self.values = (self.left + 0x8000).astype(np.uint16)
+            self.bytelist = []
+            for elem in self.values:
+                self.bytelist.append((elem >> 8) & 0xFF)
+                self.bytelist.append(elem & 0xFF)
+            #print ' '.join('0x{:04X}'.format(x) for x in self.values[0:50])
+            #print ' '.join('0x{:02X}'.format(x) for x in self.bytelist[0:100])
+            self.trackPos = 0
+            self.sendPacket(LSMOD_CONTROL_LOAD_BEGIN, [self.trackIdx])
+
+    def loadSamples(self):
+        progressBarValue = self.ui.progressBar.maximum() * (self.trackIdx + float(self.trackPos + 1) / float(len(self.bytelist))) / MAX_TRACKS
+        if progressBarValue > self.ui.progressBar.maximum():
+            progressBarValue = self.ui.progressBar.maximum()
+        self.ui.progressBar.setValue(progressBarValue)
+        print self.trackPos
+        print len(self.bytelist)
+        if (self.trackPos < len(self.bytelist)):
+            if (len(self.bytelist) - self.trackPos) > (LSMOD_DATA_MAX_LEN / 2):
+                self.sendPacket(LSMOD_CONTROL_LOAD, self.bytelist[self.trackPos:(self.trackPos + LSMOD_DATA_MAX_LEN / 2)])
+            else:
+                self.sendPacket(LSMOD_CONTROL_LOAD, self.bytelist[self.trackPos:])
+                self.trackPos = len(self.bytelist)
+        else:
+            self.sendPacket(LSMOD_CONTROL_LOAD_END, [self.trackIdx])
+
+    def endLoad(self):
+        if (self.trackIdx == 0):
+            self.ui.textEdit.append('Finished loading %s' % QtCore.QFileInfo(self.turnOnFile).fileName())
+        elif (self.trackIdx == 5):
+            self.ui.textEdit.append('Finished loading %s' % QtCore.QFileInfo(self.turnOffFile).fileName())
+            self.ui.progressBar.setValue(self.ui.progressBar.minimum())
        
     @QtCore.pyqtSlot(bool)
     def on_pushButtonTest_clicked(self, arg):
@@ -380,9 +422,15 @@ class MainWindow(QtGui.QMainWindow):
                 if (crc & 0xFF) == packet[-2]:
                     if (packet[0] == LSMOD_PACKET_HDR) and (packet[1] == PC_ADDR) and (packet[2] == LSMOD_ADDR):
                         if packet[3] == LSMOD_REPLY_ACK:
-                            self.ui.textEdit.append('Acknowledged')
+                            #self.ui.textEdit.append('Acknowledged')
+                            if packet[4] == LSMOD_CONTROL_LOAD_BEGIN:
+                                self.loadActivated.emit()
+                            elif packet[4] == LSMOD_CONTROL_LOAD_END:
+                                self.loadEnd.emit()
                         elif packet[3] == LSMOD_REPLY_LOADED:
-                            self.ui.textEdit.append('Loaded')
+                            #self.ui.textEdit.append('Loaded')
+                            self.trackPos = self.trackPos + packet[4]
+                            self.loadContinue.emit()
                         elif packet[3] == LSMOD_REPLY_STAT:
                             if len(packet) > 6:
                                 for i in range (0, (len(packet) - 6)):
@@ -396,9 +444,21 @@ class MainWindow(QtGui.QMainWindow):
                                 realZ = int(((data[4] & 0x7F) << 8) | data[5])
                                 if (data[4] & 0x80) != 0:
                                     realZ = -realZ
-                                self.ui.lineEditRealX.setText(str(realX))
-                                self.ui.lineEditRealY.setText(str(realY))
-                                self.ui.lineEditRealZ.setText(str(realZ))
+                                if realX > self.ui.horizontalSliderX.maximum():
+                                    self.ui.horizontalSliderX.setMaximum(realX)
+                                if realX < self.ui.horizontalSliderX.minimum():
+                                    self.ui.horizontalSliderX.setMinimum(realX)
+                                if realY > self.ui.horizontalSliderY.maximum():
+                                    self.ui.horizontalSliderY.setMaximum(realY)
+                                if realY < self.ui.horizontalSliderY.minimum():
+                                    self.ui.horizontalSliderY.setMinimum(realY)
+                                if realZ > self.ui.horizontalSliderZ.maximum():
+                                    self.ui.horizontalSliderZ.setMaximum(realZ)
+                                if realZ < self.ui.horizontalSliderZ.minimum():
+                                    self.ui.horizontalSliderZ.setMinimum(realZ)
+                                self.ui.horizontalSliderX.setValue(realX)
+                                self.ui.horizontalSliderY.setValue(realY)
+                                self.ui.horizontalSliderZ.setValue(realZ)
                             else:
                                 self.ui.textEdit.append('No data')
                         elif packet[3] == LSMOD_REPLY_ERROR:

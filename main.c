@@ -21,8 +21,10 @@
 uint32_t EEMEM tracksAddr[MAX_TRACKS];
 uint32_t EEMEM tracksLen[MAX_TRACKS];
 
+static bool loadActivated = false;
 static uint8_t trackIdx = 0;
 static uint32_t trackPos = 0;
+static uint8_t len = 0;
 
 static void initBoard(void)
 {
@@ -68,6 +70,11 @@ static void led2Toggle(void)
   led2(PORTD & (1 << PD7));
 }
 
+static void replyLoaded(void)
+{
+  ComportReplyLoaded(len);
+}
+
 static void commandHandler(void* args)
 {
   LsmodPacket* packet = (LsmodPacket*)args;
@@ -88,17 +95,45 @@ static void commandHandler(void* args)
       case LSMOD_CONTROL_LOAD_BEGIN:
         if (packet->data[0] == trackIdx)
         {
-          eeprom_write_dword(tracksAddr[0], 0);
-          eeprom_write_dword(tracksLen[0], 0);
+          eeprom_write_dword(tracksAddr[trackIdx], 0);
+          eeprom_write_dword(tracksLen[trackIdx], 0);
           trackPos = 0;
+          loadActivated = true;
           ComportReplyAck(LSMOD_CONTROL_LOAD_BEGIN);
-        }      
+        }
         else
         {
           ComportReplyError(LSMOD_CONTROL_LOAD_BEGIN);
-        }        
-        //TODO: Load wav into dataflash
-        //ComportReplyLoaded();
+        }
+        break;
+      case LSMOD_CONTROL_LOAD:
+        if (loadActivated)
+        {
+          len = packet->len;
+          //DataflashWrite(packet->data, (tracksAddr[trackIdx] + trackPos), packet->len, replyLoaded);
+          _delay_ms(100);
+          ComportReplyLoaded(packet->len);
+          trackPos += packet->len;
+          led1Toggle();
+        }
+        else
+        {
+          ComportReplyError(LSMOD_CONTROL_LOAD);
+        }          
+        break;
+      case LSMOD_CONTROL_LOAD_END:
+        if ((packet->data[0] == trackIdx) && loadActivated)
+        {
+          eeprom_write_dword(tracksLen[trackIdx], (trackPos + 1));
+          loadActivated = false;
+          ComportReplyAck(LSMOD_CONTROL_LOAD_END);
+          trackIdx++;
+          led1(false);
+        }
+        else
+        {
+          ComportReplyError(LSMOD_CONTROL_LOAD_END);
+        }
         break;
       case LSMOD_CONTROL_READ:
         ComportReplyAck(LSMOD_CONTROL_READ);
@@ -158,13 +193,13 @@ int main(void)
     if (Adxl330_MotionDetected)
     {
       Adxl330_MotionDetected = false;
-      led2Toggle();
+      //led2Toggle();
       // TODO: Play music
     }
     if (Adxl330_HitDetected)
     {
       Adxl330_HitDetected = false;
-      led1Toggle();
+      //led1Toggle();
       // TODO: Play music
     }
   #endif    

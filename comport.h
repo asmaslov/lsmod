@@ -25,7 +25,7 @@ void ComportParse(void);
 
 void ComportReplyError(uint8_t cmd);
 void ComportReplyAck(uint8_t cmd);
-void ComportReplyLoaded(void);
+void ComportReplyLoaded(uint8_t bytes);
 void ComportReplyStat(uint8_t axh, uint8_t axl, uint8_t ayh, uint8_t ayl, uint8_t azh, uint8_t azl);
 void ComportReplyData(uint8_t* data, uint8_t len);
 

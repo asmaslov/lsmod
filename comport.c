@@ -6,6 +6,8 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#include "debug.h"
+
 /****************************************************************************
  * Private types/enumerations/variables                                     *
  ****************************************************************************/
@@ -305,13 +307,14 @@ void ComportReplyAck(uint8_t cmd)
   ComportNeedFeedback = false;
 }
 
-void ComportReplyLoaded(void)
+void ComportReplyLoaded(uint8_t bytes)
 {
   packet.to = packet.from;
   packet.cmd = LSMOD_REPLY_LOADED;
-  packet.data[0] = LSMOD_CONTROL_LOAD;
+  packet.data[0] = bytes;
   packet.len = 1;
   send();
+  ComportNeedFeedback = false;
 }
 
 void ComportReplyStat(uint8_t axh, uint8_t axl, uint8_t ayh, uint8_t ayl, uint8_t azh, uint8_t azl)
@@ -326,6 +329,7 @@ void ComportReplyStat(uint8_t axh, uint8_t axl, uint8_t ayh, uint8_t ayl, uint8_
   packet.data[5] = azl;
   packet.len = 6;
   send();
+  ComportNeedFeedback = false;
 }
 
 void ComportReplyData(uint8_t* data, uint8_t len)
@@ -340,4 +344,5 @@ void ComportReplyData(uint8_t* data, uint8_t len)
   }
   packet.len = len;
   send();
+  ComportNeedFeedback = false;
 }
