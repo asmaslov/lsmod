@@ -1,14 +1,14 @@
 #ifndef __LSMOD_PROTOCOL_H__
 #define __LSMOD_PROTOCOL_H__
 
-#define LSMOD_BAUDRATE  57600
+#define LSMOD_BAUDRATE  115200
 
 #define LSMOD_PACKET_HDR  0xDA
 #define LSMOD_PACKET_MSK  0xB0
 #define LSMOD_PACKET_END  0xBA
 
-#define LSMOD_DATA_SRV_LEN   6
-#define LSMOD_DATA_MAX_LEN  64
+#define LSMOD_DATA_SRV_LEN    6
+#define LSMOD_DATA_MAX_LEN  200
 
 #define LSMOD_CONTROL_PING        0x00
 #define LSMOD_CONTROL_STAT        0x01

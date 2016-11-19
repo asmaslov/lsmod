@@ -18,9 +18,11 @@
 
 #include "debug.h"
 
-uint32_t EEMEM tracksAddr[MAX_TRACKS];
-uint32_t EEMEM tracksLen[MAX_TRACKS];
+uint32_t EEMEM tracksAddrMem[MAX_TRACKS];
+uint32_t EEMEM tracksLenMem[MAX_TRACKS];
 
+uint32_t tracksAddr[MAX_TRACKS];
+uint32_t tracksLen[MAX_TRACKS];
 static bool loadActivated = false;
 static uint8_t trackIdx = 0;
 static uint32_t trackPos = 0;
@@ -34,6 +36,28 @@ static void initBoard(void)
   DDRC = 0x00;
   PORTD = (1 << PD4) | (1 << PD7);
   DDRD = (1 << DDD4) | (1 << DDD6) | (1 << DDD7);
+}
+
+static void loadMem(void)
+{
+  uint8_t i;
+  
+  for (i = 0; i < MAX_TRACKS; i++)
+  {
+    tracksAddr[i] = eeprom_read_dword(&tracksAddrMem[i]);
+    tracksLen[i] = eeprom_read_dword(&tracksLenMem[i]);
+  }
+}
+
+static void saveMem(void)
+{
+  uint8_t i;
+  
+  for (i = 0; i < MAX_TRACKS; i++)
+  {
+    eeprom_write_dword(&tracksAddrMem[i], tracksAddr[i]);
+    eeprom_write_dword(&tracksLenMem[i], tracksLen[i]);
+  }
 }
 
 static void led1(bool on)
@@ -72,7 +96,7 @@ static void led2Toggle(void)
 
 static void replyLoaded(void)
 {
-  ComportReplyLoaded(len);
+  
 }
 
 static void commandHandler(void* args)
@@ -85,18 +109,23 @@ static void commandHandler(void* args)
         ComportReplyAck(LSMOD_CONTROL_PING);
         break;
       case LSMOD_CONTROL_STAT:
+      #ifdef ADXL330_USED
         ComportReplyStat((abs(Adxl330_AccelReal.x) >> 8) | ((Adxl330_AccelReal.x < 0) ? (1 << 7) : 0),
                          abs(Adxl330_AccelReal.x),
                          (abs(Adxl330_AccelReal.y) >> 8) | ((Adxl330_AccelReal.y < 0) ? (1 << 7) : 0),
                          abs(Adxl330_AccelReal.y),
                          (abs(Adxl330_AccelReal.z) >> 8) | ((Adxl330_AccelReal.z < 0) ? (1 << 7) : 0),
                          abs(Adxl330_AccelReal.z));
+      #endif
+      #if (!defined(ADXL330_USED) & !defined(MMA7455L_USED))
+        ComportReplyStat(0, 0, 0, 0, 0, 0);
+      #endif
         break;
       case LSMOD_CONTROL_LOAD_BEGIN:
         if (packet->data[0] == trackIdx)
         {
-          eeprom_write_dword(&tracksAddr[trackIdx], 0);
-          eeprom_write_dword(&tracksLen[trackIdx], 0);
+          tracksAddr[trackIdx] = 0;
+          tracksLen[trackIdx] = 0;
           trackPos = 0;
           loadActivated = true;
           ComportReplyAck(LSMOD_CONTROL_LOAD_BEGIN);
@@ -110,15 +139,16 @@ static void commandHandler(void* args)
         if (loadActivated)
         {
           len = packet->len;
-          if (!DataflashWrite(packet->data, (eeprom_read_dword(&tracksAddr[trackIdx]) + trackPos), len, replyLoaded))
+          if (DataflashWrite(packet->data, (tracksAddr[trackIdx] + trackPos), len))
           {
-            loadActivated = false;
-            ComportReplyError(LSMOD_CONTROL_LOAD);
+            trackPos += len;
+            led2Toggle();
+            ComportReplyLoaded(len);
           }
           else
           {
-            trackPos += packet->len;
-            led2Toggle();
+            loadActivated = false;
+            ComportReplyError(LSMOD_CONTROL_LOAD);
           }
         }
         else
@@ -129,11 +159,15 @@ static void commandHandler(void* args)
       case LSMOD_CONTROL_LOAD_END:
         if ((packet->data[0] == trackIdx) && loadActivated)
         {
-          eeprom_write_dword(&tracksLen[trackIdx], (trackPos + 1));
+          tracksLen[trackIdx] = trackPos;
           loadActivated = false;
           ComportReplyAck(LSMOD_CONTROL_LOAD_END);
           trackIdx++;
-          led2(false);
+          //if (trackIdx == MAX_TRACKS)
+          {
+            saveMem();
+            led2(false);
+          }      
         }
         else
         {
@@ -159,6 +193,7 @@ int main(void)
   cli();
   wdt_disable();
   initBoard();
+  loadMem();
   ComportSetup(commandHandler);
   sei();
   if (DataflashInit())

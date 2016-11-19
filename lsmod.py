@@ -14,14 +14,14 @@ PC_ADDR    = 0xA1
 
 MAX_TRACKS = 6
 
-LSMOD_BAUDRATE = 57600
+LSMOD_BAUDRATE = 115200
 
 LSMOD_PACKET_HDR = 0xDA
 LSMOD_PACKET_MSK = 0xB0
 LSMOD_PACKET_END = 0xBA
 
-LSMOD_DATA_SRV_LEN =  6
-LSMOD_DATA_MAX_LEN = 64
+LSMOD_DATA_SRV_LEN =   6
+LSMOD_DATA_MAX_LEN = 200
 
 LSMOD_CONTROL_PING       = 0x00
 LSMOD_CONTROL_STAT       = 0x01
@@ -328,7 +328,6 @@ class MainWindow(QtGui.QMainWindow):
                 self.sendPacket(LSMOD_CONTROL_LOAD, self.bytelist[self.trackPos:(self.trackPos + LSMOD_DATA_MAX_LEN / 2)])
             else:
                 self.sendPacket(LSMOD_CONTROL_LOAD, self.bytelist[self.trackPos:])
-                self.trackPos = len(self.bytelist)
         else:
             self.sendPacket(LSMOD_CONTROL_LOAD_END, [self.trackIdx])
 

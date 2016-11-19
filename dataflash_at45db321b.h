@@ -66,7 +66,7 @@
 typedef void (*DataflashCommonCallback)(void);
 
 bool DataflashInit(void);
-bool DataflashRead(uint32_t src, uint8_t *dst, uint8_t size, DataflashCommonCallback callback);
-bool DataflashWrite(uint8_t *src, uint32_t dst, uint8_t size, DataflashCommonCallback callback);
+bool DataflashRead(uint32_t src, uint8_t *dst, uint8_t size);
+bool DataflashWrite(uint8_t *src, uint32_t dst, uint8_t size);
 
 #endif // __DATAFLASH_AT45DB321B_H_

@@ -8,9 +8,8 @@
  * Private types/enumerations/variables                                     *
  ****************************************************************************/
 
-static SPIHandler handler = NULL;
 static uint8_t* data = NULL;
-static uint16_t tx_len, rx_len, cnt;
+static uint8_t tx_len, rx_len, cnt;
 
 /****************************************************************************
  * Public types/enumerations/variables                                      *
@@ -32,11 +31,6 @@ static void chipSelect(bool select)
   {
     PORTB |= (1 << PB2);
   }   
-}
-
-static void dummyHandler(void)
-{
-  
 }
 
 /****************************************************************************
@@ -64,8 +58,6 @@ ISR(SPI_STC_vect)
     {
       chipSelect(false);
       SPI_TransferCompleted = true;
-      handler();
-      handler = dummyHandler;
     }    
   }
 }
@@ -84,26 +76,25 @@ void SPI_Init(void)
   dummy = dummy;
   SPCR = (0 << CPOL) | (0 << CPHA) | (1 << SPE) | (1 << SPIE) | (1 << MSTR);
   // TODO: Calculate bits according to rate
-  //SPCR |= (0 << SPR0) | (0 << SPR1); // 5 Mbit (20 MHz clock)
-  SPCR |= (0 << SPR0) | (1 << SPR1); // 312.5 Kbit (20 MHz clock)
+  SPCR |= (0 << SPR0) | (0 << SPR1); // 5 Mbit (20 MHz clock)
+  //SPCR |= (0 << SPR0) | (1 << SPR1); // 312.5 Kbit (20 MHz clock)
   SPI_TransferCompleted = false;
-  handler = dummyHandler;
 }
 
-void SPI_ReadWrite(uint8_t* dat, uint16_t tx_ln, uint16_t rx_ln, SPIHandler hnd)
+void SPI_ReadWrite(uint8_t* dat, uint8_t tx_ln, uint8_t rx_ln)
 {
   cnt = 0;
   data = dat;
   tx_len = tx_ln;
   rx_len = rx_ln;
-  if (hnd)
-  {
-    handler = hnd;
-  }
   SPI_TransferCompleted = false;
   chipSelect(true);
   if (tx_ln != 0)
   {
     SPDR = *data;
+  }
+  else
+  {
+    SPDR = 0xFF;
   }
 }

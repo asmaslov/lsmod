@@ -75,7 +75,7 @@ static uint8_t _getchar(void)
 
 static void send()
 {
-  uint16_t i;
+  uint8_t i;
   uint8_t crc;
   
   crc = 0;
