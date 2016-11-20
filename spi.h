@@ -4,7 +4,7 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
-#define SPI_FREQUENCY_HZ  10000000
+#define SPI_FREQUENCY_HZ  5000000
 
 extern volatile bool SPI_TransferCompleted;
 

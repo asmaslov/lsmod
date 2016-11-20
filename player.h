@@ -8,7 +8,8 @@
 
 #define PLAYER_MAX_TRACKS       6
 #define PLAYER_FREQ_HZ      44100
-#define PLAYER_BUFFER_SIZE    100
+#define PLAYER_BUFFER_SIZE    441
+#define PLAYER_TEST_FREQ_HZ  1000
 
 extern volatile bool PlayerActive;
 extern uint32_t PlayerTracksAddr[PLAYER_MAX_TRACKS];
@@ -18,5 +19,7 @@ void PlayerInit(void);
 void PlayerLoadMem(void);
 void PlayerSaveMem(void);
 void PlayerTest(void);
+void PlayerStart(uint8_t track);
+void PlayerStop(void);
 
 #endif // __PLAYER_H_

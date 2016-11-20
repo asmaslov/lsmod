@@ -20,9 +20,9 @@ LSMOD_PACKET_HDR = 0xDA
 LSMOD_PACKET_MSK = 0xB0
 LSMOD_PACKET_END = 0xBA
 
-LSMOD_DATA_SRV_LEN =   6
-LSMOD_DATA_IDX_LEN =   4
-LSMOD_DATA_MAX_LEN = 160
+LSMOD_DATA_SRV_LEN =  6
+LSMOD_DATA_IDX_LEN =  4
+LSMOD_DATA_MAX_LEN = 90
 
 LSMOD_CONTROL_PING       = 0x00
 LSMOD_CONTROL_STAT       = 0x01
@@ -291,8 +291,8 @@ class MainWindow(QtGui.QMainWindow):
             self.ui.textEdit.append('Loading %s' % QtCore.QFileInfo(self.turnOnFile).fileName())
             wav = wave.open(str(self.turnOnFile), 'rb')
             (nchannels, sampwidth, framerate, nframes, comptype, compname) = wav.getparams()
-            if sampwidth != 2:
-                self.ui.textEdit.append('Only 16 bit width sample supported')
+            if sampwidth != 1:
+                self.ui.textEdit.append('Only 8 bit width sample supported')
                 return
             if framerate != 44100:
                 self.ui.textEdit.append('Only 44100 framerate supported')
@@ -301,7 +301,7 @@ class MainWindow(QtGui.QMainWindow):
                 self.ui.textEdit.append('Compressed file not supported yet')
                 return
             frames = wav.readframes(nframes * nchannels)
-            out = struct.unpack_from('%dh' %(nframes * nchannels), frames)
+            out = struct.unpack_from('%db' %(nframes * nchannels), frames)
             if nchannels == 2:
                 self.ui.textEdit.append('Stereo sound detected - merging')
                 self.left = np.array(out[0:][::2], dtype = np.int32)
@@ -310,10 +310,9 @@ class MainWindow(QtGui.QMainWindow):
             else:
                 self.left = np.array(out, dtype = np.int32)
                 self.right = self.left
-            self.values = (self.left + 0x8000).astype(np.uint16)
+            self.values = (self.left + 0x80).astype(np.uint8)
             self.bytelist = []
             for elem in self.values:
-                self.bytelist.append((elem >> 8) & 0xFF)
                 self.bytelist.append(elem & 0xFF)
             #print ' '.join('0x{:04X}'.format(x) for x in self.values[0:50])
             #print ' '.join('0x{:02X}'.format(x) for x in self.bytelist[0:100])

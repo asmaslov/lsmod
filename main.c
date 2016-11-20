@@ -191,7 +191,8 @@ int main(void)
   {
     if ((~PINB & (1 << PINB0)) && !PlayerActive)
     {
-	    PlayerTest();
+	    //PlayerTest();
+		  PlayerStart(0);
     }
     if (ComportIsDataToParse & !ComportNeedFeedback)
     {
