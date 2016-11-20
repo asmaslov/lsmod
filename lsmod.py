@@ -21,7 +21,8 @@ LSMOD_PACKET_MSK = 0xB0
 LSMOD_PACKET_END = 0xBA
 
 LSMOD_DATA_SRV_LEN =   6
-LSMOD_DATA_MAX_LEN = 200
+LSMOD_DATA_IDX_LEN =   4
+LSMOD_DATA_MAX_LEN = 160
 
 LSMOD_CONTROL_PING       = 0x00
 LSMOD_CONTROL_STAT       = 0x01
@@ -65,6 +66,8 @@ class MainWindow(QtGui.QMainWindow):
     turnOffFilePlay = False
     loadActivated = pyqtSignal()
     loadContinue = pyqtSignal()
+    loadRepeat = QtCore.QTimer()
+    loadRepeatPeriodMs = 100
     loadEnd = pyqtSignal()
     
     def __init__(self):
@@ -97,6 +100,7 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.textEdit.setReadOnly(True)
         self.loadActivated.connect(self.loadSamples)
         self.loadContinue.connect(self.loadSamples)
+        self.loadRepeat.timeout.connect(self.loadSamples)
         self.loadEnd.connect(self.endLoad)
         self.ui.horizontalSliderX.enabledChange(False)
 
@@ -325,9 +329,10 @@ class MainWindow(QtGui.QMainWindow):
         print len(self.bytelist)
         if (self.trackPos < len(self.bytelist)):
             if (len(self.bytelist) - self.trackPos) > (LSMOD_DATA_MAX_LEN / 2):
-                self.sendPacket(LSMOD_CONTROL_LOAD, self.bytelist[self.trackPos:(self.trackPos + LSMOD_DATA_MAX_LEN / 2)])
+                self.sendPacket(LSMOD_CONTROL_LOAD, [ord(i) for i in list(struct.pack('>I', self.trackPos))] + self.bytelist[self.trackPos:(self.trackPos + LSMOD_DATA_MAX_LEN / 2)])
             else:
-                self.sendPacket(LSMOD_CONTROL_LOAD, self.bytelist[self.trackPos:])
+                self.sendPacket(LSMOD_CONTROL_LOAD, [ord(i) for i in list(struct.pack('>I', self.trackPos))] + self.bytelist[self.trackPos:])
+            self.loadRepeat.start(self.loadRepeatPeriodMs)
         else:
             self.sendPacket(LSMOD_CONTROL_LOAD_END, [self.trackIdx])
 
@@ -427,6 +432,7 @@ class MainWindow(QtGui.QMainWindow):
                             elif packet[4] == LSMOD_CONTROL_LOAD_END:
                                 self.loadEnd.emit()
                         elif packet[3] == LSMOD_REPLY_LOADED:
+                            self.loadRepeat.stop()
                             self.trackPos = self.trackPos + packet[4]
                             self.loadContinue.emit()
                         elif packet[3] == LSMOD_REPLY_STAT:

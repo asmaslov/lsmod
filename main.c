@@ -1,5 +1,4 @@
 #include <avr/io.h>
-#include <avr/eeprom.h>
 #include <avr/interrupt.h>
 #include <avr/wdt.h>
 #include <inttypes.h>
@@ -15,18 +14,14 @@
 #ifdef ADXL330_USED
   #include "accel_adxl330.h"
 #endif
+#include "player.h"
 
 #include "debug.h"
 
-uint32_t EEMEM tracksAddrMem[MAX_TRACKS];
-uint32_t EEMEM tracksLenMem[MAX_TRACKS];
-
-uint32_t tracksAddr[MAX_TRACKS];
-uint32_t tracksLen[MAX_TRACKS];
-static bool loadActivated = false;
-static uint8_t trackIdx = 0;
-static uint32_t trackPos = 0;
-static uint8_t len = 0;
+static bool loadTrackActive = false;
+static uint8_t loadTrackIdx = 0;
+static uint32_t loadTrackPos = 0;
+static uint8_t loadTrackLen = 0;
 
 static void initBoard(void)
 {
@@ -36,28 +31,6 @@ static void initBoard(void)
   DDRC = 0x00;
   PORTD = (1 << PD4) | (1 << PD7);
   DDRD = (1 << DDD4) | (1 << DDD6) | (1 << DDD7);
-}
-
-static void loadMem(void)
-{
-  uint8_t i;
-  
-  for (i = 0; i < MAX_TRACKS; i++)
-  {
-    tracksAddr[i] = eeprom_read_dword(&tracksAddrMem[i]);
-    tracksLen[i] = eeprom_read_dword(&tracksLenMem[i]);
-  }
-}
-
-static void saveMem(void)
-{
-  uint8_t i;
-  
-  for (i = 0; i < MAX_TRACKS; i++)
-  {
-    eeprom_write_dword(&tracksAddrMem[i], tracksAddr[i]);
-    eeprom_write_dword(&tracksLenMem[i], tracksLen[i]);
-  }
 }
 
 static void led1(bool on)
@@ -94,11 +67,6 @@ static void led2Toggle(void)
   led2(PORTD & (1 << PD7));
 }
 
-static void replyLoaded(void)
-{
-  
-}
-
 static void commandHandler(void* args)
 {
   LsmodPacket* packet = (LsmodPacket*)args;
@@ -122,12 +90,12 @@ static void commandHandler(void* args)
       #endif
         break;
       case LSMOD_CONTROL_LOAD_BEGIN:
-        if (packet->data[0] == trackIdx)
+        if (packet->data[0] == loadTrackIdx)
         {
-          tracksAddr[trackIdx] = 0;
-          tracksLen[trackIdx] = 0;
-          trackPos = 0;
-          loadActivated = true;
+          PlayerTracksAddr[loadTrackIdx] = 0;
+          PlayerTracksLen[loadTrackIdx] = 0;
+          loadTrackPos = 0;
+          loadTrackActive = true;
           ComportReplyAck(LSMOD_CONTROL_LOAD_BEGIN);
         }
         else
@@ -136,18 +104,24 @@ static void commandHandler(void* args)
         }
         break;
       case LSMOD_CONTROL_LOAD:
-        if (loadActivated)
+        if (loadTrackActive)
         {
-          len = packet->len;
-          if (DataflashWrite(packet->data, (tracksAddr[trackIdx] + trackPos), len))
+			    loadTrackPos = packet->data[0];
+				  loadTrackPos << 8;
+				  loadTrackPos += packet->data[1];
+				  loadTrackPos << 8;
+				  loadTrackPos += packet->data[2];
+				  loadTrackPos << 8;
+				  loadTrackPos += packet->data[0];
+          loadTrackLen = packet->len - 4;
+          if (DataflashWrite(&packet->data[4], (PlayerTracksAddr[loadTrackIdx] + loadTrackLen), loadTrackLen))
           {
-            trackPos += len;
             led2Toggle();
-            ComportReplyLoaded(len);
+            ComportReplyLoaded(loadTrackLen);
           }
           else
           {
-            loadActivated = false;
+            loadTrackActive = false;
             ComportReplyError(LSMOD_CONTROL_LOAD);
           }
         }
@@ -157,15 +131,15 @@ static void commandHandler(void* args)
         }
         break;
       case LSMOD_CONTROL_LOAD_END:
-        if ((packet->data[0] == trackIdx) && loadActivated)
+        if ((packet->data[0] == loadTrackIdx) && loadTrackActive)
         {
-          tracksLen[trackIdx] = trackPos;
-          loadActivated = false;
+          PlayerTracksLen[loadTrackIdx] = loadTrackPos;
+          loadTrackActive = false;
           ComportReplyAck(LSMOD_CONTROL_LOAD_END);
-          trackIdx++;
-          //if (trackIdx == MAX_TRACKS)
+          loadTrackIdx++;
+          //if (trackIdx == PLAYER_MAX_TRACKS)
           {
-            saveMem();
+            PlayerSaveMem();
             led2(false);
           }      
         }
@@ -193,8 +167,9 @@ int main(void)
   cli();
   wdt_disable();
   initBoard();
-  loadMem();
   ComportSetup(commandHandler);
+  PlayerInit();
+  PlayerLoadMem();
   sei();
   if (DataflashInit())
   {
@@ -214,9 +189,9 @@ int main(void)
 #endif
   while(1)
   {
-    if (~PINB & (1 << PINB0))
+    if ((~PINB & (1 << PINB0)) && !PlayerActive)
     {
-      // TODO: Do something
+	    PlayerTest();
     }
     if (ComportIsDataToParse & !ComportNeedFeedback)
     {
