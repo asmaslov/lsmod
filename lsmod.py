@@ -22,7 +22,7 @@ LSMOD_PACKET_END = 0xBA
 
 LSMOD_DATA_SRV_LEN =  6
 LSMOD_DATA_IDX_LEN =  4
-LSMOD_DATA_MAX_LEN = 90
+LSMOD_DATA_MAX_LEN = 96
 
 LSMOD_CONTROL_PING       = 0x00
 LSMOD_CONTROL_STAT       = 0x01
@@ -327,10 +327,12 @@ class MainWindow(QtGui.QMainWindow):
         print self.trackPos
         print len(self.bytelist)
         if (self.trackPos < len(self.bytelist)):
-            if (len(self.bytelist) - self.trackPos) > (LSMOD_DATA_MAX_LEN / 2):
-                self.sendPacket(LSMOD_CONTROL_LOAD, [ord(i) for i in list(struct.pack('>I', self.trackPos))] + self.bytelist[self.trackPos:(self.trackPos + LSMOD_DATA_MAX_LEN / 2)])
+            if (len(self.bytelist) - self.trackPos) > ((LSMOD_DATA_MAX_LEN - LSMOD_DATA_IDX_LEN) / 2):
+                self.sendPacket(LSMOD_CONTROL_LOAD, [ord(i) for i in list(struct.pack('>I', self.trackPos))] + \
+                                                    self.bytelist[self.trackPos:(self.trackPos + (LSMOD_DATA_MAX_LEN - LSMOD_DATA_IDX_LEN) / 2)])
             else:
-                self.sendPacket(LSMOD_CONTROL_LOAD, [ord(i) for i in list(struct.pack('>I', self.trackPos))] + self.bytelist[self.trackPos:])
+                self.sendPacket(LSMOD_CONTROL_LOAD, [ord(i) for i in list(struct.pack('>I', self.trackPos))] + \
+                                                    self.bytelist[self.trackPos:])
             self.loadRepeat.start(self.loadRepeatPeriodMs)
         else:
             self.sendPacket(LSMOD_CONTROL_LOAD_END, [self.trackIdx])

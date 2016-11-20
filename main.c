@@ -106,17 +106,18 @@ static void commandHandler(void* args)
       case LSMOD_CONTROL_LOAD:
         if (loadTrackActive)
         {
-			    loadTrackPos = packet->data[0];
-				  loadTrackPos << 8;
-				  loadTrackPos += packet->data[1];
-				  loadTrackPos << 8;
-				  loadTrackPos += packet->data[2];
-				  loadTrackPos << 8;
-				  loadTrackPos += packet->data[0];
-          loadTrackLen = packet->len - 4;
-          if (DataflashWrite(&packet->data[4], (PlayerTracksAddr[loadTrackIdx] + loadTrackLen), loadTrackLen))
+          loadTrackPos = packet->data[0];
+          loadTrackPos = loadTrackPos << 8;
+          loadTrackPos += packet->data[1];
+          loadTrackPos = loadTrackPos << 8;
+          loadTrackPos += packet->data[2];
+          loadTrackPos = loadTrackPos << 8;
+          loadTrackPos += packet->data[3];
+          loadTrackLen = packet->len - LSMOD_DATA_IDX_LEN;
+          if (DataflashWrite(&packet->data[LSMOD_DATA_IDX_LEN], (PlayerTracksAddr[loadTrackIdx] + loadTrackPos), loadTrackLen))
           {
             led2Toggle();
+            loadTrackPos += loadTrackLen;
             ComportReplyLoaded(loadTrackLen);
           }
           else
@@ -191,8 +192,8 @@ int main(void)
   {
     if ((~PINB & (1 << PINB0)) && !PlayerActive)
     {
-	    //PlayerTest();
-		  PlayerStart(0);
+      //PlayerTest();
+      PlayerStart(0);
     }
     if (ComportIsDataToParse & !ComportNeedFeedback)
     {

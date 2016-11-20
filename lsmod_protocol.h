@@ -9,7 +9,7 @@
 
 #define LSMOD_DATA_SRV_LEN   6
 #define LSMOD_DATA_IDX_LEN   4
-#define LSMOD_DATA_MAX_LEN  90
+#define LSMOD_DATA_MAX_LEN  96
 
 #define LSMOD_CONTROL_PING        0x00
 #define LSMOD_CONTROL_STAT        0x01

@@ -43,31 +43,33 @@ uint32_t PlayerTracksLen[PLAYER_MAX_TRACKS];
 
 ISR(TIMER1_COMPA_vect)
 {
-	soundBufferPos++;
-	if ((trackPos + soundBufferPos) == trackLen)
-	{
-		PlayerStop();
-		return;
-	}
-	if (soundBufferPos == PLAYER_BUFFER_SIZE)
-	{
-		trackPos += PLAYER_BUFFER_SIZE;
-		if (trackPos == trackLen)
-		{
-		  PlayerStop();
-		  return;			
-		}
-		if ((trackLen - trackPos) > PLAYER_BUFFER_SIZE)
-		{
-			DataflashRead(PlayerTracksAddr[trackIdx] + trackPos, soundBuffer, PLAYER_BUFFER_SIZE);
-		}
-		else
-		{
-			DataflashRead(PlayerTracksAddr[trackIdx] + trackPos, soundBuffer, (trackLen - trackPos));
-		}
-	  soundBufferPos = 0;	
-	}	
-	OCR1A = soundBuffer[trackPos];
+  TIMSK1 &= ~(1 << OCIE1A);
+  soundBufferPos++;
+  if ((trackPos + soundBufferPos) == trackLen)
+  {
+    PlayerStop();
+    return;
+  }
+  if (soundBufferPos == PLAYER_BUFFER_SIZE)
+  {
+    trackPos += PLAYER_BUFFER_SIZE;
+    if (trackPos == trackLen)
+    {
+      PlayerStop();
+      return;      
+    }
+    if ((trackLen - trackPos) > PLAYER_BUFFER_SIZE)
+    {
+      DataflashRead(PlayerTracksAddr[trackIdx] + trackPos, soundBuffer, PLAYER_BUFFER_SIZE);
+    }
+    else
+    {
+      DataflashRead(PlayerTracksAddr[trackIdx] + trackPos, soundBuffer, (trackLen - trackPos));
+    }
+    soundBufferPos = 0;
+  }
+  OCR1A = soundBuffer[soundBufferPos];
+  TIMSK1 |= (1 << OCIE1A);
 }
 
 /****************************************************************************
@@ -84,11 +86,11 @@ void PlayerInit(void)
   TCCR1B = 0x00;
   div = 0;
   do {
-	  icr = F_CPU / (PLAYER_FREQ_HZ * prescale1[++div]) - 1;
+    icr = F_CPU / (PLAYER_FREQ_HZ * prescale1[++div]) - 1;
   } while (icr > UINT16_MAX);
   ICR1 = (uint16_t)icr; 
   div1 = div;
-	TCCR1A = (1 << COM1A1) | (0 << COM1A0) | (1 << WGM11) | (0 << WGM10);
+  TCCR1A = (1 << COM1A1) | (0 << COM1A0) | (1 << WGM11) | (0 << WGM10);
   TCCR1B = (1 << WGM13) | (1 << WGM12);
   DDRB |= (1 << DDB1);
 }
@@ -119,18 +121,18 @@ void PlayerTest(void)
 {
   uint16_t i;
   double val;
-	
-	PlayerActive = true;
-	for (i = 0; i < PLAYER_BUFFER_SIZE; i++)
-	{
-		val = i;
-		val = 127 * sin(2 * M_PI * val * PLAYER_TEST_FREQ_HZ / PLAYER_FREQ_HZ);
-		soundBuffer[i] = 0x80 + (int8_t)val;
-	}
-	soundBufferPos = 0;
-	trackLen = PLAYER_BUFFER_SIZE;
-	trackPos = 0;
-	OCR1A = soundBuffer[0];
+  
+  PlayerActive = true;
+  for (i = 0; i < PLAYER_BUFFER_SIZE; i++)
+  {
+    val = i;
+    val = 127 * sin(2 * M_PI * val * PLAYER_TEST_FREQ_HZ / PLAYER_FREQ_HZ);
+    soundBuffer[i] = 0x80 + (int8_t)val;
+  }
+  soundBufferPos = 0;
+  trackLen = PLAYER_BUFFER_SIZE;
+  trackPos = 0;
+  OCR1A = soundBuffer[0];
   TCCR1B |= (((div1 >> 2) & 1) << CS12) | (((div1 >> 1) & 1) << CS11) | (((div1 >> 0) & 1) << CS10);
   TCNT1 = 0;
   TIMSK1 |= (1 << OCIE1A);
@@ -138,12 +140,12 @@ void PlayerTest(void)
 
 void PlayerStart(uint8_t track)
 {
-	assert(track < PLAYER_MAX_TRACKS);
-	DataflashRead(PlayerTracksAddr[track], soundBuffer, PLAYER_BUFFER_SIZE);
-	soundBufferPos = 0;
-	trackLen = PlayerTracksLen[track];
+  assert(track < PLAYER_MAX_TRACKS);
+  DataflashRead(PlayerTracksAddr[track], soundBuffer, PLAYER_BUFFER_SIZE);
+  soundBufferPos = 0;
+  trackLen = PlayerTracksLen[track];
   trackPos = 0;
-	OCR1A = soundBuffer[0];
+  OCR1A = soundBuffer[0];
   TCCR1B |= (((div1 >> 2) & 1) << CS12) | (((div1 >> 1) & 1) << CS11) | (((div1 >> 0) & 1) << CS10);
   TCNT1 = 0;
   TIMSK1 |= (1 << OCIE1A);
@@ -151,7 +153,7 @@ void PlayerStart(uint8_t track)
 
 void PlayerStop(void)
 {
-	TCCR1B &= ~((1 << CS12) | (1 << CS11) | (1 << CS10));
-	TIMSK1 &= ~(1 << OCIE1A);
+  TCCR1B &= ~((1 << CS12) | (1 << CS11) | (1 << CS10));
+  TIMSK1 &= ~(1 << OCIE1A);
   PlayerActive = false;
 }

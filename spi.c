@@ -76,8 +76,8 @@ void SPI_Init(void)
   dummy = dummy;
   SPCR = (0 << CPOL) | (0 << CPHA) | (1 << SPE) | (1 << SPIE) | (1 << MSTR);
   // TODO: Calculate bits according to rate
-  SPCR |= (0 << SPR0) | (0 << SPR1); // 5 Mbit (20 MHz clock)
-  //SPCR |= (0 << SPR0) | (1 << SPR1); // 312.5 Kbit (20 MHz clock)
+  SPCR |= (0 << SPR0) | (1 << SPR1); // 312.5 Kbit (20 MHz clock)
+  //SPCR |= (1 << SPR0) | (1 << SPR1); // 156.250 Kbit (20 MHz clock)
   SPI_TransferCompleted = false;
 }
 
