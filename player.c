@@ -19,9 +19,9 @@ static uint8_t div1;
 static uint32_t EEMEM tracksAddrMem[PLAYER_MAX_TRACKS];
 static uint32_t EEMEM tracksLenMem[PLAYER_MAX_TRACKS];
 
-static uint8_t soundBuffer[PLAYER_BUFFER_SIZE];
-static uint16_t soundBufferPos = 0;
-static uint8_t trackIdx = 0;
+static uint8_t sound;
+static bool test = false;
+static uint8_t testSound[PLAYER_BUFFER_SIZE];
 static uint32_t trackPos = 0;
 static uint32_t trackLen = 0;
 
@@ -43,33 +43,34 @@ uint32_t PlayerTracksLen[PLAYER_MAX_TRACKS];
 
 ISR(TIMER1_COMPA_vect)
 {
-  TIMSK1 &= ~(1 << OCIE1A);
-  soundBufferPos++;
-  if ((trackPos + soundBufferPos) == trackLen)
+  trackPos++;
+}
+
+ISR(TIMER1_OVF_vect)
+{
+  if (test)
   {
-    PlayerStop();
-    return;
-  }
-  if (soundBufferPos == PLAYER_BUFFER_SIZE)
-  {
-    trackPos += PLAYER_BUFFER_SIZE;
-    if (trackPos == trackLen)
+    if (trackPos < PLAYER_BUFFER_SIZE)
     {
-      PlayerStop();
-      return;      
-    }
-    if ((trackLen - trackPos) > PLAYER_BUFFER_SIZE)
-    {
-      DataflashRead(PlayerTracksAddr[trackIdx] + trackPos, soundBuffer, PLAYER_BUFFER_SIZE);
+      OCR1A = testSound[trackPos];
     }
     else
     {
-      DataflashRead(PlayerTracksAddr[trackIdx] + trackPos, soundBuffer, (trackLen - trackPos));
+      PlayerStop();
     }
-    soundBufferPos = 0;
   }
-  OCR1A = soundBuffer[soundBufferPos];
-  TIMSK1 |= (1 << OCIE1A);
+  else
+  {
+    if (trackPos < trackLen)
+    {
+      OCR1A = sound;
+      DataflashReadContiniousNext();
+    }
+    else
+    {
+      PlayerStop();
+    }
+  }
 }
 
 /****************************************************************************
@@ -127,25 +128,26 @@ void PlayerTest(void)
   {
     val = i;
     val = 127 * sin(2 * M_PI * val * PLAYER_TEST_FREQ_HZ / PLAYER_FREQ_HZ);
-    soundBuffer[i] = 0x80 + (int8_t)val;
+    testSound[i] = 0x80 + (int8_t)val;
   }
-  soundBufferPos = 0;
+  test = true;
   trackLen = PLAYER_BUFFER_SIZE;
   trackPos = 0;
-  OCR1A = soundBuffer[0];
+  OCR1A = testSound[0];
   TCCR1B |= (((div1 >> 2) & 1) << CS12) | (((div1 >> 1) & 1) << CS11) | (((div1 >> 0) & 1) << CS10);
   TCNT1 = 0;
   TIMSK1 |= (1 << OCIE1A);
 }
 
 void PlayerStart(uint8_t track)
-{
+{ 
   assert(track < PLAYER_MAX_TRACKS);
-  DataflashRead(PlayerTracksAddr[track], soundBuffer, PLAYER_BUFFER_SIZE);
-  soundBufferPos = 0;
+  PlayerActive = true;
+  DataflashReadContinious(PlayerTracksAddr[track], &sound);
   trackLen = PlayerTracksLen[track];
   trackPos = 0;
-  OCR1A = soundBuffer[0];
+  OCR1A = sound;
+  DataflashReadContiniousNext();
   TCCR1B |= (((div1 >> 2) & 1) << CS12) | (((div1 >> 1) & 1) << CS11) | (((div1 >> 0) & 1) << CS10);
   TCNT1 = 0;
   TIMSK1 |= (1 << OCIE1A);
@@ -153,6 +155,14 @@ void PlayerStart(uint8_t track)
 
 void PlayerStop(void)
 {
+  if (test)
+  {
+    test = false;
+  }
+  else
+  {
+    DataflashReadContiniousStop();
+  }    
   TCCR1B &= ~((1 << CS12) | (1 << CS11) | (1 << CS10));
   TIMSK1 &= ~(1 << OCIE1A);
   PlayerActive = false;

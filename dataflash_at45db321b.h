@@ -63,10 +63,11 @@
 
 #define DB321_BUFFER_SIZE            (8 + LSMOD_DATA_MAX_LEN / 2)
 
-typedef void (*DataflashCommonCallback)(void);
-
 bool DataflashInit(void);
 bool DataflashRead(uint32_t src, uint8_t *dst, uint8_t size);
 bool DataflashWrite(uint8_t *src, uint32_t dst, uint8_t size);
+bool DataflashReadContinious(uint32_t src, uint8_t *dst);
+void DataflashReadContiniousNext(void);
+void DataflashReadContiniousStop(void);
 
 #endif // __DATAFLASH_AT45DB321B_H_

@@ -8,7 +8,9 @@
  * Private types/enumerations/variables                                     *
  ****************************************************************************/
 
+static bool continious = false;
 static uint8_t* data = NULL;
+static uint8_t* read;
 static uint8_t tx_len, rx_len, cnt;
 
 /****************************************************************************
@@ -42,8 +44,8 @@ ISR(SPI_STC_vect)
   if (cnt < (tx_len + rx_len))
   {
     *(data + cnt) = SPDR;
+    cnt++;
   }
-  cnt++;
   if (cnt < tx_len)
   {
     SPDR = *(data + cnt);
@@ -56,7 +58,14 @@ ISR(SPI_STC_vect)
     }
     else
     {
-      chipSelect(false);
+      if (continious)
+      {
+        read = SPDR;
+      }
+      else
+      {      
+        chipSelect(false);
+      }      
       SPI_TransferCompleted = true;
     }    
   }
@@ -81,7 +90,7 @@ void SPI_Init(void)
   SPI_TransferCompleted = false;
 }
 
-void SPI_ReadWrite(uint8_t* dat, uint8_t tx_ln, uint8_t rx_ln)
+void SPI_WriteRead(uint8_t* dat, uint8_t tx_ln, uint8_t rx_ln)
 {
   cnt = 0;
   data = dat;
@@ -97,4 +106,35 @@ void SPI_ReadWrite(uint8_t* dat, uint8_t tx_ln, uint8_t rx_ln)
   {
     SPDR = 0xFF;
   }
+}
+
+void SPI_WriteReadContinious(uint8_t* dat, uint8_t tx_ln, uint8_t* r)
+{
+  cnt = 0;
+  data = dat;
+  tx_len = tx_ln;
+  rx_len = 0;
+  read = r;
+  continious = true;
+  SPI_TransferCompleted = false;
+  chipSelect(true);
+  if (tx_ln != 0)
+  {
+    SPDR = *data;
+  }
+  else
+  {
+    SPDR = 0xFF;
+  }
+}
+
+void SPI_WriteReadContiniousNext(void)
+{
+  SPDR = 0xFF;
+}
+
+void SPI_WriteReadContiniousStop(void)
+{
+  continious = false;
+  chipSelect(false);
 }
