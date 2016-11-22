@@ -60,7 +60,7 @@ ISR(SPI_STC_vect)
     {
       if (continious)
       {
-        read = SPDR;
+        *read = SPDR;
       }
       else
       {      

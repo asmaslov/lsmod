@@ -92,7 +92,14 @@ static void commandHandler(void* args)
       case LSMOD_CONTROL_LOAD_BEGIN:
         if (packet->data[0] == loadTrackIdx)
         {
-          PlayerTracksAddr[loadTrackIdx] = 0;
+          if (loadTrackIdx == 0)
+          {
+            PlayerTracksAddr[loadTrackIdx] = 0;
+          }
+          else
+          {
+            PlayerTracksAddr[loadTrackIdx] = PlayerTracksAddr[loadTrackIdx - 1] + PlayerTracksLen[loadTrackIdx - 1];
+          }
           PlayerTracksLen[loadTrackIdx] = 0;
           loadTrackPos = 0;
           loadTrackActive = true;
