@@ -136,7 +136,7 @@ void PlayerTest(void)
   OCR1A = testSound[0];
   TCCR1B |= (((div1 >> 2) & 1) << CS12) | (((div1 >> 1) & 1) << CS11) | (((div1 >> 0) & 1) << CS10);
   TCNT1 = 0;
-  TIMSK1 |= (1 << OCIE1A);
+  TIMSK1 |= ((1 << OCIE1A) | (1 << TOIE1));
 }
 
 void PlayerStart(uint8_t track)
@@ -150,7 +150,7 @@ void PlayerStart(uint8_t track)
   DataflashReadContiniousNext();
   TCCR1B |= (((div1 >> 2) & 1) << CS12) | (((div1 >> 1) & 1) << CS11) | (((div1 >> 0) & 1) << CS10);
   TCNT1 = 0;
-  TIMSK1 |= (1 << OCIE1A);
+  TIMSK1 |= ((1 << OCIE1A) | (1 << TOIE1));
 }
 
 void PlayerStop(void)
@@ -164,6 +164,6 @@ void PlayerStop(void)
     DataflashReadContiniousStop();
   }    
   TCCR1B &= ~((1 << CS12) | (1 << CS11) | (1 << CS10));
-  TIMSK1 &= ~(1 << OCIE1A);
+  TIMSK1 &= ~((1 << OCIE1A) | (1 << TOIE1));
   PlayerActive = false;
 }
