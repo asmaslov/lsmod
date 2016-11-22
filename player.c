@@ -41,13 +41,9 @@ uint32_t PlayerTracksLen[PLAYER_MAX_TRACKS];
  * Interrupt handler functions                                              *
  ****************************************************************************/
 
-ISR(TIMER1_COMPA_vect)
-{
-  trackPos++;
-}
-
 ISR(TIMER1_OVF_vect)
 {
+  trackPos++;
   if (test)
   {
     if (trackPos < PLAYER_BUFFER_SIZE)
@@ -110,12 +106,20 @@ void PlayerLoadMem(void)
 void PlayerSaveMem(void)
 {
   uint8_t i;
-  
-  for (i = 0; i < PLAYER_MAX_TRACKS; i++)
+
+  eeprom_write_dword(&tracksAddrMem[0], PlayerTracksAddr[0]);
+  eeprom_busy_wait();
+  eeprom_write_dword(&tracksLenMem[0], PlayerTracksLen[0]);
+  eeprom_busy_wait();
+
+  //TODO: Fix strange bug with memory save, it saves shit
+  /*for (i = 0; i < PLAYER_MAX_TRACKS; i++)
   {
     eeprom_write_dword(&tracksAddrMem[i], PlayerTracksAddr[i]);
+    eeprom_busy_wait();
     eeprom_write_dword(&tracksLenMem[i], PlayerTracksLen[i]);
-  }
+    eeprom_busy_wait();
+  }*/
 }
 
 void PlayerTest(void)
@@ -136,7 +140,7 @@ void PlayerTest(void)
   OCR1A = testSound[0];
   TCCR1B |= (((div1 >> 2) & 1) << CS12) | (((div1 >> 1) & 1) << CS11) | (((div1 >> 0) & 1) << CS10);
   TCNT1 = 0;
-  TIMSK1 |= ((1 << OCIE1A) | (1 << TOIE1));
+  TIMSK1 |= (1 << TOIE1);
 }
 
 void PlayerStart(uint8_t track)
@@ -150,7 +154,7 @@ void PlayerStart(uint8_t track)
   DataflashReadContiniousNext();
   TCCR1B |= (((div1 >> 2) & 1) << CS12) | (((div1 >> 1) & 1) << CS11) | (((div1 >> 0) & 1) << CS10);
   TCNT1 = 0;
-  TIMSK1 |= ((1 << OCIE1A) | (1 << TOIE1));
+  TIMSK1 |= (1 << TOIE1);
 }
 
 void PlayerStop(void)
@@ -164,6 +168,6 @@ void PlayerStop(void)
     DataflashReadContiniousStop();
   }    
   TCCR1B &= ~((1 << CS12) | (1 << CS11) | (1 << CS10));
-  TIMSK1 &= ~((1 << OCIE1A) | (1 << TOIE1));
+  TIMSK1 &= ~(1 << TOIE1);
   PlayerActive = false;
 }
