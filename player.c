@@ -1,4 +1,5 @@
 #include "player.h"
+#include "dataflash_at45db321b.h"
 
 #include <avr/io.h>
 #include <avr/eeprom.h>
@@ -56,19 +57,17 @@ ISR(TIMER1_OVF_vect)
 
 void PlayerInit(void)
 {
-  uint8_t div;
   uint32_t icr;
 
   TIMSK1 &= ~(1 << OCIE1A);
   TCCR1A = 0x00;
   TCCR1B = 0x00;
-  div = 0;
+  div1 = 0;
   do {
-    icr = F_CPU / (PLAYER_FREQ_HZ * prescale1[++div]) - 1;
+    icr = F_CPU / (PLAYER_FREQ_HZ * prescale1[++div1]) - 1;
   } while (icr > UINT16_MAX);
   ICR1 = (uint16_t)icr; 
-  div1 = div;
-  TCCR1A = (1 << COM1A1) | (0 << COM1A0) | (1 << WGM11) | (0 << WGM10);
+  TCCR1A = (1 << COM1A1) | (1 << COM1A0) | (1 << WGM11) | (0 << WGM10);
   TCCR1B = (1 << WGM13) | (1 << WGM12);
   DDRB |= (1 << DDB1);
 }
