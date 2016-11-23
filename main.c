@@ -156,10 +156,6 @@ static void commandHandler(void* args)
           ComportReplyError(LSMOD_CONTROL_LOAD_END);
         }
         break;
-      case LSMOD_CONTROL_READ:
-        ComportReplyAck(LSMOD_CONTROL_READ);
-        //TODO: ComportReplyData(...) Read and send wav from dataflash
-        break;
       default:
         ComportReplyError(packet->cmd);
     }

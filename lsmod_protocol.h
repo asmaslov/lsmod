@@ -7,22 +7,21 @@
 #define LSMOD_PACKET_MSK  0xB0
 #define LSMOD_PACKET_END  0xBA
 
-#define LSMOD_DATA_SRV_LEN   6
-#define LSMOD_DATA_IDX_LEN   4
-#define LSMOD_DATA_MAX_LEN  96
+#define LSMOD_SRV_LEN         6
+#define LSMOD_DATA_IDX_LEN    4
+#define LSMOD_DATA_MAX_LEN  306
+#define LSMOD_STAT_MAX_LEN    6
 
 #define LSMOD_CONTROL_PING        0x00
 #define LSMOD_CONTROL_STAT        0x01
 #define LSMOD_CONTROL_LOAD_BEGIN  0x10
 #define LSMOD_CONTROL_LOAD        0x11
 #define LSMOD_CONTROL_LOAD_END    0x12
-#define LSMOD_CONTROL_READ        0x20
 
 #define LSMOD_REPLY_ERROR   0x00
 #define LSMOD_REPLY_ACK     0x01
 #define LSMOD_REPLY_LOADED  0x02
-#define LSMOD_REPLY_STAT    0x10
-#define LSMOD_REPLY_DATA    0x11
+#define LSMOD_REPLY_STAT    0x03
 
 typedef struct {
   unsigned char header;

@@ -331,18 +331,3 @@ void ComportReplyStat(uint8_t axh, uint8_t axl, uint8_t ayh, uint8_t ayl, uint8_
   send();
   ComportNeedFeedback = false;
 }
-
-void ComportReplyData(uint8_t* data, uint8_t len)
-{
-  uint8_t i;
-  
-  packet.to = packet.from;
-  packet.cmd = LSMOD_REPLY_DATA;
-  for (i = 0; i < len; i++)
-  {
-    packet.data[i] = *(data + i);
-  }
-  packet.len = len;
-  send();
-  ComportNeedFeedback = false;
-}
