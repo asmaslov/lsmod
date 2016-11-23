@@ -2,6 +2,7 @@
 #define __DATAFLASH_AT45DB321B_H_
 
 #include "spi.h"
+#include "lsmod_protocol.h"
 
 #include <inttypes.h>
 #include <stdbool.h>

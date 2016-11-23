@@ -7,8 +7,6 @@
 #include <assert.h>
 #include <stdlib.h>
 
-#include "debug.h"
-
 /****************************************************************************
  * Private types/enumerations/variables                                     *
  ****************************************************************************/
@@ -20,8 +18,6 @@ static uint32_t EEMEM tracksAddrMem[PLAYER_MAX_TRACKS];
 static uint32_t EEMEM tracksLenMem[PLAYER_MAX_TRACKS];
 
 static uint8_t sound;
-static bool test = false;
-static uint8_t testSound[PLAYER_BUFFER_SIZE];
 static uint32_t trackPos = 0;
 static uint32_t trackLen = 0;
 
@@ -43,29 +39,14 @@ uint32_t PlayerTracksLen[PLAYER_MAX_TRACKS];
 
 ISR(TIMER1_OVF_vect)
 {
-  trackPos++;
-  if (test)
+  if (++trackPos < trackLen)
   {
-    if (trackPos < PLAYER_BUFFER_SIZE)
-    {
-      OCR1A = testSound[trackPos];
-    }
-    else
-    {
-      PlayerStop();
-    }
+    OCR1A = sound;
+    DataflashReadContiniousNext();
   }
   else
   {
-    if (trackPos < trackLen)
-    {
-      OCR1A = sound;
-      DataflashReadContiniousNext();
-    }
-    else
-    {
-      PlayerStop();
-    }
+    PlayerStop();
   }
 }
 
@@ -122,27 +103,6 @@ void PlayerSaveMem(void)
   }*/
 }
 
-void PlayerTest(void)
-{
-  uint16_t i;
-  double val;
-  
-  PlayerActive = true;
-  for (i = 0; i < PLAYER_BUFFER_SIZE; i++)
-  {
-    val = i;
-    val = 127 * sin(2 * M_PI * val * PLAYER_TEST_FREQ_HZ / PLAYER_FREQ_HZ);
-    testSound[i] = 0x80 + (int8_t)val;
-  }
-  test = true;
-  trackLen = PLAYER_BUFFER_SIZE;
-  trackPos = 0;
-  OCR1A = testSound[0];
-  TCCR1B |= (((div1 >> 2) & 1) << CS12) | (((div1 >> 1) & 1) << CS11) | (((div1 >> 0) & 1) << CS10);
-  TCNT1 = 0;
-  TIMSK1 |= (1 << TOIE1);
-}
-
 void PlayerStart(uint8_t track)
 { 
   assert(track < PLAYER_MAX_TRACKS);
@@ -159,14 +119,7 @@ void PlayerStart(uint8_t track)
 
 void PlayerStop(void)
 {
-  if (test)
-  {
-    test = false;
-  }
-  else
-  {
-    DataflashReadContiniousStop();
-  }    
+  DataflashReadContiniousStop();
   TCCR1B &= ~((1 << CS12) | (1 << CS11) | (1 << CS10));
   TIMSK1 &= ~(1 << TOIE1);
   PlayerActive = false;
