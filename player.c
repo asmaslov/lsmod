@@ -69,7 +69,7 @@ void PlayerInit(void)
   } while (icr > UINT16_MAX);
   div1 = div;
   ICR1 = (uint16_t)icr;
-  TCCR1A = (1 << COM1A1) | (1 << COM1A0) | (1 << WGM11) | (0 << WGM10);
+  TCCR1A = (1 << WGM11) | (0 << WGM10);
   TCCR1B = (1 << WGM13) | (1 << WGM12);
   DDRB |= (1 << DDB1);
 }
@@ -101,6 +101,7 @@ void PlayerStart(uint8_t track)
     trackPos = 0;
     OCR1A = sound;
     DataflashReadContiniousNext();
+    TCCR1A |= (1 << COM1A1) | (1 << COM1A0);
     TCCR1B |= (((div1 >> 2) & 1) << CS12) | (((div1 >> 1) & 1) << CS11) | (((div1 >> 0) & 1) << CS10);
     TCNT1 = 0;
     TIMSK1 |= (1 << TOIE1);
@@ -110,7 +111,9 @@ void PlayerStart(uint8_t track)
 void PlayerStop(void)
 {
   TIMSK1 &= ~(1 << TOIE1);
+  TCCR1A &= ~((1 << COM1A1) | (1 << COM1A0));
   TCCR1B &= ~((1 << CS12) | (1 << CS11) | (1 << CS10));
+  PORTB &= ~(1 << PB1);
   DataflashReadContiniousStop();
   PlayerActive = false;
 }
