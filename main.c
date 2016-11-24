@@ -218,7 +218,7 @@ int main(void)
     if (Adxl330_MotionDetected)
     {
       Adxl330_MotionDetected = false;
-      led1Toggle();
+      led2Toggle();
     }
     if (Adxl330_HitDetected)
     {
