@@ -94,15 +94,18 @@ void PlayerSaveMem(void)
 void PlayerStart(uint8_t track)
 { 
   assert(track < PLAYER_MAX_TRACKS);
-  PlayerActive = true;
-  DataflashReadContinious(PlayerTracksAddr[track], &sound);
-  trackLen = PlayerTracksLen[track];
-  trackPos = 0;
-  OCR1A = sound;
-  DataflashReadContiniousNext();
-  TCCR1B |= (((div1 >> 2) & 1) << CS12) | (((div1 >> 1) & 1) << CS11) | (((div1 >> 0) & 1) << CS10);
-  TCNT1 = 0;
-  TIMSK1 |= (1 << TOIE1);
+  if (PlayerTracksLen[track] != 0)
+  {
+    PlayerActive = true;
+    DataflashReadContinious(PlayerTracksAddr[track], &sound);
+    trackLen = PlayerTracksLen[track];
+    trackPos = 0;
+    OCR1A = sound;
+    DataflashReadContiniousNext();
+    TCCR1B |= (((div1 >> 2) & 1) << CS12) | (((div1 >> 1) & 1) << CS11) | (((div1 >> 0) & 1) << CS10);
+    TCNT1 = 0;
+    TIMSK1 |= (1 << TOIE1);
+  }  
 }
 
 void PlayerStop(void)

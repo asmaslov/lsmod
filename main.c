@@ -218,14 +218,15 @@ int main(void)
     if (Adxl330_MotionDetected)
     {
       Adxl330_MotionDetected = false;
-      //led2Toggle();
-      // TODO: Play music
+      led1Toggle();
     }
     if (Adxl330_HitDetected)
     {
       Adxl330_HitDetected = false;
-      //led1Toggle();
-      // TODO: Play music
+      if (!PlayerActive)
+      {
+        PlayerStart(0);
+      }
     }
   #endif    
   #ifdef WATCHDOG_USED
