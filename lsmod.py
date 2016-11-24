@@ -345,7 +345,11 @@ class MainWindow(QtGui.QMainWindow):
         progressBarValue = self.ui.progressBar.maximum() * (self.trackIdx + float(self.trackPos + 1) / float(len(self.bytelist))) / MAX_TRACKS
         if progressBarValue > self.ui.progressBar.maximum():
             progressBarValue = self.ui.progressBar.maximum()
+        progressBarFileValue = self.ui.progressBarFile.maximum() * float(self.trackPos + 1) / float(len(self.bytelist))
+        if progressBarFileValue > self.ui.progressBarFile.maximum():
+            progressBarFileValue = self.ui.progressBarFile.maximum()
         self.ui.progressBar.setValue(progressBarValue)
+        self.ui.progressBarFile.setValue(progressBarFileValue)
         print self.trackPos
         print len(self.bytelist)
         if (self.trackPos < len(self.bytelist)):
@@ -361,6 +365,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def endLoad(self):
         self.ui.textEdit.append('Finished loading %s' % QtCore.QFileInfo(self.loadedFile).fileName())
+        self.ui.progressBarFile.setValue(self.ui.progressBar.minimum())
         self.trackIdx = self.trackIdx + 1
         if self.trackIdx < MAX_TRACKS:
             self.pickFile()
