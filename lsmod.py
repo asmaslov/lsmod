@@ -284,38 +284,62 @@ class MainWindow(QtGui.QMainWindow):
             self.turnOff.stop()
 
     def on_pushButtonLoad_released(self):
-        if QtCore.QFile.exists(self.turnOnFile):
-            self.trackIdx = 0
-            self.ui.textEdit.append('Loading %s' % QtCore.QFileInfo(self.turnOnFile).fileName())
-            wav = wave.open(str(self.turnOnFile), 'rb')
-            (nchannels, sampwidth, framerate, nframes, comptype, compname) = wav.getparams()
-            if sampwidth != 1:
-                self.ui.textEdit.append('Only 8 bit width sample supported')
-                return
-            if framerate != 44100:
-                self.ui.textEdit.append('Only 44100 framerate supported')
-                return
-            if comptype != 'NONE':
-                self.ui.textEdit.append('Compressed file not supported yet')
-                return
-            frames = wav.readframes(nframes * nchannels)
-            out = struct.unpack_from('%db' %(nframes * nchannels), frames)
-            if nchannels == 2:
-                self.ui.textEdit.append('Stereo sound detected - merging')
-                self.left = np.array(out[0:][::2], dtype = np.int32)
-                self.right = np.array(out[1:][::2], dtype = np.int32)
-                #TODO: Merge stereo to mono
-            else:
-                self.left = np.array(out, dtype = np.int32)
-                self.right = self.left
-            self.values = (self.left + 0x80).astype(np.uint8)
-            self.bytelist = []
-            for elem in self.values:
-                self.bytelist.append(elem & 0xFF)
-            #print ' '.join('0x{:04X}'.format(x) for x in self.values[0:50])
-            #print ' '.join('0x{:02X}'.format(x) for x in self.bytelist[0:100])
-            self.trackPos = 0
-            self.sendPacket(LSMOD_CONTROL_LOAD_BEGIN, [self.trackIdx])
+        self.trackIdx = 0
+        self.pickFile()
+
+    def pickFile(self):
+        if (self.trackIdx == 0) and QtCore.QFile.exists(self.turnOnFile):
+            self.loadedFile = self.turnOnFile
+            self.startLoad()
+        elif (self.trackIdx == 1) and QtCore.QFile.exists(self.humFile):
+            self.loadedFile = self.humFile
+            self.startLoad()
+        elif (self.trackIdx == 2) and QtCore.QFile.exists(self.swingFile):
+            self.loadedFile = self.swingFile
+            self.startLoad()
+        elif (self.trackIdx == 3) and QtCore.QFile.exists(self.hitFile):
+            self.loadedFile = self.hitFile
+            self.startLoad()
+        elif (self.trackIdx == 4) and QtCore.QFile.exists(self.clashFile):
+            self.loadedFile = self.clashFile
+            self.startLoad()
+        elif (self.trackIdx == 5) and QtCore.QFile.exists(self.turnOffFile):
+            self.loadedFile = self.turnOffFile
+            self.startLoad()
+        else:
+            self.ui.textEdit.append('No file')
+
+    def startLoad(self):
+        self.ui.textEdit.append('Loading %s' % QtCore.QFileInfo(self.loadedFile).fileName())
+        wav = wave.open(str(self.loadedFile), 'rb')
+        (nchannels, sampwidth, framerate, nframes, comptype, compname) = wav.getparams()
+        if sampwidth != 1:
+            self.ui.textEdit.append('Only 8 bit width sample supported')
+            return
+        if framerate != 44100:
+            self.ui.textEdit.append('Only 44100 framerate supported')
+            return
+        if comptype != 'NONE':
+            self.ui.textEdit.append('Compressed file not supported yet')
+            return
+        frames = wav.readframes(nframes * nchannels)
+        out = struct.unpack_from('%db' %(nframes * nchannels), frames)
+        if nchannels == 2:
+            self.ui.textEdit.append('Stereo sound detected - merging')
+            self.left = np.array(out[0:][::2], dtype = np.int32)
+            self.right = np.array(out[1:][::2], dtype = np.int32)
+            #TODO: Merge stereo to mono
+        else:
+            self.left = np.array(out, dtype = np.int32)
+            self.right = self.left
+        self.values = (self.left + 0x80).astype(np.uint8)
+        self.bytelist = []
+        for elem in self.values:
+            self.bytelist.append(elem & 0xFF)
+        #print ' '.join('0x{:04X}'.format(x) for x in self.values[0:50])
+        #print ' '.join('0x{:02X}'.format(x) for x in self.bytelist[0:100])
+        self.trackPos = 0
+        self.sendPacket(LSMOD_CONTROL_LOAD_BEGIN, [self.trackIdx])
 
     def loadSamples(self):
         progressBarValue = self.ui.progressBar.maximum() * (self.trackIdx + float(self.trackPos + 1) / float(len(self.bytelist))) / MAX_TRACKS
@@ -336,10 +360,12 @@ class MainWindow(QtGui.QMainWindow):
             self.sendPacket(LSMOD_CONTROL_LOAD_END, [self.trackIdx])
 
     def endLoad(self):
-        if (self.trackIdx == 0):
-            self.ui.textEdit.append('Finished loading %s' % QtCore.QFileInfo(self.turnOnFile).fileName())
-        elif (self.trackIdx == 5):
-            self.ui.textEdit.append('Finished loading %s' % QtCore.QFileInfo(self.turnOffFile).fileName())
+        self.ui.textEdit.append('Finished loading %s' % QtCore.QFileInfo(self.loadedFile).fileName())
+        self.trackIdx = self.trackIdx + 1
+        if self.trackIdx < MAX_TRACKS:
+            self.pickFile()
+        else:
+            self.ui.textEdit.append('All files loaded')
             self.ui.progressBar.setValue(self.ui.progressBar.minimum())
        
     @QtCore.pyqtSlot(bool)
@@ -465,6 +491,7 @@ class MainWindow(QtGui.QMainWindow):
                             else:
                                 self.ui.textEdit.append('No data')
                         elif packet[3] == LSMOD_REPLY_ERROR:
+                            self.loadRepeat.stop()
                             self.ui.textEdit.append('Error')
                         else:
                             self.ui.textEdit.append('Unknown')

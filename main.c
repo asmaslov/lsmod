@@ -18,12 +18,12 @@
 
 #include "debug.h"
 
-static bool loadTrackActive = false;
-static uint8_t loadTrackIdx = 0;
-static uint32_t loadTrackPos = 0;
-static uint8_t loadTrackLen = 0;
+bool loadTrackActive = false;
+uint8_t loadTrackIdx = 0;
+uint32_t loadTrackPos = 0;
+uint8_t loadTrackLen = 0;
 
-static void initBoard(void)
+void initBoard(void)
 {
   PORTB = (1 << PB0);
   DDRB = 0x00;
@@ -33,7 +33,7 @@ static void initBoard(void)
   DDRD = (1 << DDD4) | (1 << DDD6) | (1 << DDD7);
 }
 
-static void led1(bool on)
+void led1(bool on)
 {
   if (on == 0)
   {
@@ -45,12 +45,12 @@ static void led1(bool on)
   }
 }
 
-static void led1Toggle(void)
+void led1Toggle(void)
 {
   led1(PORTD & (1 << PD4));
 }
 
-static void led2(bool on)
+void led2(bool on)
 {
   if (on == 0)
   {
@@ -62,12 +62,12 @@ static void led2(bool on)
   }
 }
 
-static void led2Toggle(void)
+void led2Toggle(void)
 {
   led2(PORTD & (1 << PD7));
 }
 
-static void commandHandler(void* args)
+void commandHandler(void* args)
 {
   LsmodPacket* packet = (LsmodPacket*)args;
   if (packet->to == LSMOD_ADDR)
@@ -124,7 +124,6 @@ static void commandHandler(void* args)
           if (DataflashWrite(&packet->data[LSMOD_DATA_IDX_LEN], (PlayerTracksAddr[loadTrackIdx] + loadTrackPos), loadTrackLen))
           {
             led2Toggle();
-            loadTrackPos += loadTrackLen;
             ComportReplyLoaded(loadTrackLen);
           }
           else
@@ -141,15 +140,22 @@ static void commandHandler(void* args)
       case LSMOD_CONTROL_LOAD_END:
         if ((packet->data[0] == loadTrackIdx) && loadTrackActive)
         {
-          PlayerTracksLen[loadTrackIdx] = loadTrackPos;
+          PlayerTracksLen[loadTrackIdx] = loadTrackPos + loadTrackLen;
           loadTrackActive = false;
           ComportReplyAck(LSMOD_CONTROL_LOAD_END);
           loadTrackIdx++;
-          //if (trackIdx == PLAYER_MAX_TRACKS)
+          if (loadTrackIdx == PLAYER_MAX_TRACKS)
           {
+            loadTrackIdx = 0;
+            _delay_ms(COMPORT_TIMEOUT_MS);
+            //TODO: Bug is not in eeprom function, written values are wrong!
             PlayerSaveMem();
             led2(false);
-          }      
+          }
+          else
+          {
+            led2(true);
+          }
         }
         else
         {
@@ -173,8 +179,8 @@ int main(void)
   initBoard();
   ComportSetup(commandHandler);
   PlayerInit();
-  PlayerLoadMem();
   sei();
+  PlayerLoadMem();
   if (DataflashInit())
   {
     deblink(3);

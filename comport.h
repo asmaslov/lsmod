@@ -12,6 +12,8 @@
 #define RX_BUFFER_SIZE  (LSMOD_SRV_LEN + LSMOD_DATA_MAX_LEN)
 #define TX_BUFFER_SIZE  (LSMOD_SRV_LEN + LSMOD_STAT_MAX_LEN)
 
+#define COMPORT_TIMEOUT_MS  100
+
 typedef void (*ParserHandler)(void* args);
 
 extern volatile bool ComportIsDataToParse, ComportNeedFeedback;
