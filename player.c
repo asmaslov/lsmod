@@ -105,13 +105,13 @@ void PlayerStart(uint8_t track)
     TCCR1B |= (((div1 >> 2) & 1) << CS12) | (((div1 >> 1) & 1) << CS11) | (((div1 >> 0) & 1) << CS10);
     TCNT1 = 0;
     TIMSK1 |= (1 << TOIE1);
-  }  
+  }
 }
 
 void PlayerStop(void)
 {
-  DataflashReadContiniousStop();
-  TCCR1B &= ~((1 << CS12) | (1 << CS11) | (1 << CS10));
   TIMSK1 &= ~(1 << TOIE1);
+  TCCR1B &= ~((1 << CS12) | (1 << CS11) | (1 << CS10));
+  DataflashReadContiniousStop();
   PlayerActive = false;
 }
