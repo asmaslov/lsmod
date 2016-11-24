@@ -215,4 +215,5 @@ void DataflashReadContiniousNext(void)
 void DataflashReadContiniousStop(void)
 {
   SPI_WriteReadContiniousStop();
+  dataflashBusy = false;
 }

@@ -16,8 +16,8 @@
 static const uint16_t prescale1[6] = {0, 1, 8, 64, 256, 1024};
 static uint8_t div1;
 
-uint32_t EEMEM tracksAddrMem[PLAYER_MAX_TRACKS];
-uint32_t EEMEM tracksLenMem[PLAYER_MAX_TRACKS];
+static uint32_t EEMEM tracksAddrMem[PLAYER_MAX_TRACKS];
+static uint32_t EEMEM tracksLenMem[PLAYER_MAX_TRACKS];
 
 static uint8_t sound;
 static uint32_t trackPos = 0;
@@ -60,8 +60,7 @@ void PlayerInit(void)
 {
   uint32_t icr;
   uint8_t div;
-
-  TIMSK1 &= ~(1 << OCIE1A);
+  
   TCCR1A = 0x00;
   TCCR1B = 0x00;
   div = 0;
