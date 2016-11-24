@@ -18,7 +18,7 @@ uint16_t* rawX = NULL;
 uint16_t* rawY = NULL;
 uint16_t* rawZ = NULL;
 static volatile uint8_t xcount, ycount, zcount;
-static ADXL330_VALUES accelPrev;
+static volatile ADXL330_VALUES accelPrev;
 static ADXL330_VALUES accelAccum;
 static const uint32_t prescale2[8] = {0, 1, 8, 32, 64, 128, 256, 1024};
 
@@ -148,11 +148,14 @@ void Adxl330_Init(void)
   xcount = 0;
   ycount = 0;
   zcount = 0;
-  timer2Setup(ADXL330_FREQ_HZ);
   ADC_Init();
   rawX = ADC_ChannelSetup(ADXL330_CHAN_X, readyX);
   rawY = ADC_ChannelSetup(ADXL330_CHAN_Y, readyY);
   rawZ = ADC_ChannelSetup(ADXL330_CHAN_Z, readyZ);
+  timer2Setup(ADXL330_FREQ_HZ);
+  while ((accelPrev.x == 0) || (accelPrev.y ==0) || (accelPrev.z == 0));
+  Adxl330_HitDetected = false;
+  Adxl330_MotionDetected = false;
 }
 
 void Adxl330_Get(ADXL330_ANGLES* angles)
