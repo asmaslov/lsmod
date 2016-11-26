@@ -313,9 +313,6 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.textEdit.append('Loading %s' % QtCore.QFileInfo(self.loadedFile).fileName())
         wav = wave.open(str(self.loadedFile), 'rb')
         (nchannels, sampwidth, framerate, nframes, comptype, compname) = wav.getparams()
-        if sampwidth != 1:
-            self.ui.textEdit.append('Only 8 bit width sample supported')
-            return
         if framerate != 44100:
             self.ui.textEdit.append('Only 44100 framerate supported')
             return
@@ -323,21 +320,37 @@ class MainWindow(QtGui.QMainWindow):
             self.ui.textEdit.append('Compressed file not supported yet')
             return
         frames = wav.readframes(nframes * nchannels)
-        out = struct.unpack_from('%db' %(nframes * nchannels), frames)
-        if nchannels == 2:
-            self.ui.textEdit.append('Stereo sound detected - merging')
-            self.left = np.array(out[0:][::2], dtype = np.int32)
-            self.right = np.array(out[1:][::2], dtype = np.int32)
-            #TODO: Merge stereo to mono
-        else:
-            self.left = np.array(out, dtype = np.int32)
-            self.right = self.left
-        self.values = (self.left + 0x80).astype(np.uint8)
         self.bytelist = []
-        for elem in self.values:
-            self.bytelist.append(elem & 0xFF)
-        #print ' '.join('0x{:04X}'.format(x) for x in self.values[0:50])
-        #print ' '.join('0x{:02X}'.format(x) for x in self.bytelist[0:100])
+        if sampwidth == 1:
+            out = struct.unpack_from('%dB' %(nframes * nchannels), frames)
+            if nchannels == 1:
+                self.sound = np.array(out, dtype = np.uint8)
+            elif nchannels == 2:
+                self.ui.textEdit.append('Stereo sound detected - merging')
+                left = np.array(out[0:][::2], dtype = np.uint8)
+                right = np.array(out[1:][::2], dtype = np.uint8)
+                self.sound = left / 2 + right / 2
+            print ' '.join('{:d}'.format(x) for x in self.sound[0:50])
+            self.values = self.sound
+            print ' '.join('0x{:02X}'.format(x) for x in self.values[0:50])
+            for elem in self.values:
+                self.bytelist.append(elem & 0xFF)
+            print ' '.join('0x{:02X}'.format(x) for x in self.bytelist[0:50])
+        elif sampwidth == 2:
+            out = struct.unpack_from('%dh' %(nframes * nchannels), frames)
+            if nchannels == 1:
+                self.sound = np.array(out, dtype = np.int32)
+            elif nchannels == 2:
+                self.ui.textEdit.append('Stereo sound detected - merging')
+                left = np.array(out[0:][::2], dtype = np.int32)
+                right = np.array(out[1:][::2], dtype = np.int32)
+                self.sound = left / 2 + right / 2
+            print ' '.join('{:d}'.format(x) for x in self.sound[0:50])
+            self.values = (self.sound + 0x8000).astype(np.uint16)
+            print ' '.join('0x{:04X}'.format(x) for x in self.values[0:50])
+            for elem in self.values:
+                self.bytelist.append((elem >> 8) & 0xFF)                 
+            print ' '.join('0x{:02X}'.format(x) for x in self.bytelist[0:50])
         self.trackPos = 0
         self.sendPacket(LSMOD_CONTROL_LOAD_BEGIN, [self.trackIdx])
 

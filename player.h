@@ -12,6 +12,7 @@
 extern volatile bool PlayerActive;
 extern uint32_t PlayerTracksAddr[PLAYER_MAX_TRACKS];
 extern uint32_t PlayerTracksLen[PLAYER_MAX_TRACKS];
+extern uint16_t PlayerMaxValue;
 
 void PlayerInit(void);
 void PlayerLoadMem(void);
