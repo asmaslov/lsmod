@@ -11,7 +11,7 @@
 #define ADXL330_ZERO       512
 #define ADXL330_FREQ_HZ    100
 #define ADXL330_ACCUMUL    100
-#define ADXL330_MOTION      20
+#define ADXL330_MOTION      30
 #define ADXL330_HIT         80
  
 typedef struct {

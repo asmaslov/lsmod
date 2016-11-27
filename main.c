@@ -210,6 +210,7 @@ int main(void)
       else
       {
         activated = false;
+        PlayerStop();
         PlayerStart(TRACK_TURNOFF);
         while (PlayerActive);
       }
@@ -231,7 +232,6 @@ int main(void)
       if (Adxl330_HitDetected)
       {
         Adxl330_HitDetected = false;
-        Adxl330_MotionDetected = false;
         PlayerStop();
         PlayerStart(TRACK_HIT);
       }
