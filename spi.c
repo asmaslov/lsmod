@@ -9,7 +9,7 @@
  ****************************************************************************/
 
 static bool continious = false;
-static uint8_t* data = NULL;
+static uint8_t* data;
 static uint8_t* read;
 static uint8_t tx_len, rx_len, cnt;
 
@@ -84,9 +84,7 @@ void SPI_Init(void)
   dummy = SPSR;
   dummy = dummy;
   SPCR = (0 << CPOL) | (0 << CPHA) | (1 << SPE) | (1 << SPIE) | (1 << MSTR);
-  // TODO: Calculate bits according to rate
-  SPCR |= (0 << SPR0) | (1 << SPR1); // 312.5 Kbit (20 MHz clock)
-  //SPCR |= (1 << SPR0) | (1 << SPR1); // 156.250 Kbit (20 MHz clock)
+  SPCR |= (1 << SPR0) | (0 << SPR1); // 1.25 Mbit (20 MHz clock)
   SPI_TransferCompleted = false;
 }
 
@@ -108,13 +106,13 @@ void SPI_WriteRead(uint8_t* dat, uint8_t tx_ln, uint8_t rx_ln)
   }
 }
 
-void SPI_WriteReadContinious(uint8_t* dat, uint8_t tx_ln, uint8_t* r)
+void SPI_WriteReadContinious(uint8_t* dat, uint8_t tx_ln, uint8_t* rd)
 {
   cnt = 0;
   data = dat;
   tx_len = tx_ln;
   rx_len = 0;
-  read = r;
+  read = rd;
   continious = true;
   SPI_TransferCompleted = false;
   chipSelect(true);

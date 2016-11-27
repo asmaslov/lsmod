@@ -44,7 +44,7 @@ ISR(TIMER1_OVF_vect)
 {
   if (++trackPos < trackLen)
   {
-    OCR1A = sound;
+    OCR1AL = sound;
     DataflashReadContiniousNext();
   }
   else
@@ -64,6 +64,7 @@ void PlayerInit(void)
   
   TCCR1A = 0x00;
   TCCR1B = 0x00;
+  OCR1A = 0x00;
   div = 0;
   do {
     icr = F_CPU / (PLAYER_FREQ_HZ * prescale1[++div]) - 1;
@@ -101,7 +102,7 @@ void PlayerStart(uint8_t track)
     DataflashReadContinious(PlayerTracksAddr[track], &sound);
     trackLen = PlayerTracksLen[track];
     trackPos = 0;
-    OCR1A = sound;
+    OCR1AL = sound;
     DataflashReadContiniousNext();
     TCCR1A |= (1 << COM1A1) | (0 << COM1A0);
     TCCR1B |= (((div1 >> 2) & 1) << CS12) | (((div1 >> 1) & 1) << CS11) | (((div1 >> 0) & 1) << CS10);

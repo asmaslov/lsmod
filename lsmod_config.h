@@ -12,4 +12,11 @@
 #define LSMOD_ADDR  0x21
 #define PC_ADDR     0xA1
 
+#define TRACK_TURNON   0
+#define TRACK_HUM      1
+#define TRACK_SWING    2
+#define TRACK_HIT      3
+#define TRACK_CLASH    4
+#define TRACK_TURNOFF  5
+
 #endif // __LSMOD_CONFIG_H__

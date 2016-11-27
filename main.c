@@ -148,7 +148,6 @@ void commandHandler(void* args)
           {
             loadTrackIdx = 0;
             _delay_ms(COMPORT_TIMEOUT_MS);
-            //TODO: Bug is not in eeprom function, written values are wrong!
             PlayerSaveMem();
             led2(false);
           }
@@ -201,7 +200,7 @@ int main(void)
   {
     if ((~PINB & (1 << PINB0)) && !PlayerActive)
     {
-      PlayerStart(0);
+      PlayerStart(TRACK_TURNON);
     }
     if (ComportIsDataToParse & !ComportNeedFeedback)
     {
@@ -218,14 +217,17 @@ int main(void)
     if (Adxl330_MotionDetected)
     {
       Adxl330_MotionDetected = false;
-      led2Toggle();
+      if (!PlayerActive)
+      {
+        PlayerStart(TRACK_SWING);
+      }
     }
     if (Adxl330_HitDetected)
     {
       Adxl330_HitDetected = false;
       if (!PlayerActive)
       {
-        PlayerStart(0);
+        PlayerStart(TRACK_HIT);
       }
     }
   #endif    
