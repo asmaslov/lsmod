@@ -3,7 +3,6 @@
 
 //#define MMA7455L_USED
 #define ADXL330_USED
-//#define WATCHDOG_USED
 
 #ifndef F_CPU
   #define F_CPU  20000000

@@ -18,6 +18,7 @@
 
 #include "debug.h"
 
+bool activated = false;
 bool loadTrackActive = false;
 uint8_t loadTrackIdx = 0;
 uint32_t loadTrackPos = 0;
@@ -174,7 +175,6 @@ void commandHandler(void* args)
 int main(void)
 {
   cli();
-  wdt_disable();
   initBoard();
   ComportSetup(commandHandler);
   PlayerInit();
@@ -193,47 +193,56 @@ int main(void)
 #ifdef ADXL330_USED
   Adxl330_Init();
 #endif
-#ifdef WATCHDOG_USED
-  wdt_enable(WDTO_500MS);
-#endif
   while(1)
   {
-    if ((~PINB & (1 << PINB0)) && !PlayerActive)
-    {
-      PlayerStart(TRACK_TURNON);
-    }
     if (ComportIsDataToParse & !ComportNeedFeedback)
     {
       ComportParse();
     }
-  #ifdef MMA7455L_USED
-    if (Mma7455l_MotionDetected)
+    if (~PINB & (1 << PINB0))
     {
-      Mma7455l_MotionDetected = false;
-      // TODO: Play music
-    }
-  #endif
-  #ifdef ADXL330_USED
-    if (Adxl330_MotionDetected)
-    {
-      Adxl330_MotionDetected = false;
-      if (!PlayerActive)
+      if (!activated)
       {
-        PlayerStart(TRACK_SWING);
+        PlayerStart(TRACK_TURNON);
+        while (PlayerActive);
+        activated = true;
+      }
+      else
+      {
+        activated = false;
+        PlayerStart(TRACK_TURNOFF);
+        while (PlayerActive);
       }
     }
-    if (Adxl330_HitDetected)
+    if (activated)
     {
-      Adxl330_HitDetected = false;
       if (!PlayerActive)
       {
+        PlayerStart(TRACK_HUM);
+      }
+    #ifdef MMA7455L_USED
+      if (Mma7455l_MotionDetected)
+      {
+        Mma7455l_MotionDetected = false;
+        // TODO: Play music
+      }
+    #endif
+    #ifdef ADXL330_USED
+      if (Adxl330_HitDetected)
+      {
+        Adxl330_HitDetected = false;
+        Adxl330_MotionDetected = false;
+        PlayerStop();
         PlayerStart(TRACK_HIT);
       }
+      else if (Adxl330_MotionDetected)
+      {
+        Adxl330_MotionDetected = false;
+        PlayerStop();
+        PlayerStart(TRACK_SWING);
+      }
+    #endif
     }
-  #endif    
-  #ifdef WATCHDOG_USED
-    wdt_reset();
-  #endif
   }
   return 0;
 }
