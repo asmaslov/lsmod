@@ -19,6 +19,8 @@
 #include "debug.h"
 
 bool activated = false;
+bool hit = false;
+bool clash = false;
 bool loadTrackActive = false;
 uint8_t loadTrackIdx = 0;
 uint32_t loadTrackPos = 0;
@@ -33,6 +35,9 @@ void initBoard(void)
   PORTD = (1 << PD4) | (1 << PD7);
   DDRD = (1 << DDD4) | (1 << DDD6) | (1 << DDD7);
 }
+
+#define BUTTON_PRESSED  (~PINB & (1 << PINB0))
+#define SENSOR_ACTIVE   (PIND & (1 << PIND5))
 
 void led1(bool on)
 {
@@ -195,14 +200,15 @@ int main(void)
 #endif
   while(1)
   {
-    if (ComportIsDataToParse & !ComportNeedFeedback)
+    if (ComportIsDataToParse && !ComportNeedFeedback && !activated && !PlayerActive)
     {
       ComportParse();
     }
-    if (~PINB & (1 << PINB0))
+    if (BUTTON_PRESSED)
     {
       if (!activated)
       {
+        led2(true);
         PlayerStart(TRACK_TURNON);
         while (PlayerActive);
         activated = true;
@@ -210,16 +216,35 @@ int main(void)
       else
       {
         activated = false;
-        PlayerStop();
         PlayerStart(TRACK_TURNOFF);
         while (PlayerActive);
+        led2(false);
       }
     }
     if (activated)
     {
-      if (!PlayerActive)
+      if (hit && !PlayerActive)
       {
-        PlayerStart(TRACK_HUM);
+        hit = false;
+      }
+      if (!hit)
+      {
+        if (SENSOR_ACTIVE && !clash)
+        {
+          clash = true;
+          led1(true);
+          PlayerStart(TRACK_CLASH);
+        }
+        if (clash && SENSOR_ACTIVE && !PlayerActive)
+        {
+          PlayerStart(TRACK_CLASH);
+        }
+        if (clash && !SENSOR_ACTIVE)
+        {
+          clash = false;
+          led1(false);
+          PlayerStop();        
+        }
       }
     #ifdef MMA7455L_USED
       if (Mma7455l_MotionDetected)
@@ -232,16 +257,25 @@ int main(void)
       if (Adxl330_HitDetected)
       {
         Adxl330_HitDetected = false;
-        PlayerStop();
-        PlayerStart(TRACK_HIT);
+        if (!hit)
+        {
+          hit = true;
+          PlayerStart(TRACK_HIT);
+        }
       }
-      else if (Adxl330_MotionDetected)
+      if (Adxl330_MotionDetected)
       {
         Adxl330_MotionDetected = false;
-        PlayerStop();
-        PlayerStart(TRACK_SWING);
+        if (!hit && !clash)
+        {
+          PlayerStart(TRACK_SWING);
+        }
       }
     #endif
+      if (!PlayerActive && !hit && !clash)
+      {
+        PlayerStart(TRACK_HUM);
+      }
     }
   }
   return 0;

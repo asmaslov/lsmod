@@ -98,6 +98,10 @@ void PlayerStart(uint8_t track)
   assert(track < PLAYER_MAX_TRACKS);
   if (PlayerTracksLen[track] != 0)
   {
+    if (PlayerActive)
+    {
+      PlayerStop();
+    }
     PlayerActive = true;
     DataflashReadContinious(PlayerTracksAddr[track], &sound);
     trackLen = PlayerTracksLen[track];
