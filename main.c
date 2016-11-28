@@ -21,6 +21,7 @@
 bool activated = false;
 bool hit = false;
 bool clash = false;
+bool swing = false;
 bool loadTrackActive = false;
 uint8_t loadTrackIdx = 0;
 uint32_t loadTrackPos = 0;
@@ -227,6 +228,10 @@ int main(void)
       {
         hit = false;
       }
+      if (swing && !PlayerActive)
+      {
+        swing = false;
+      }
       if (!hit)
       {
         if (SENSOR_ACTIVE && !clash)
@@ -266,8 +271,9 @@ int main(void)
       if (Adxl330_MotionDetected)
       {
         Adxl330_MotionDetected = false;
-        if (!hit && !clash)
+        if (!swing && !hit && !clash)
         {
+          swing = true;
           PlayerStart(TRACK_SWING);
         }
       }
