@@ -20,7 +20,7 @@
 #define RGB_LAVENDER     0xE6E6FA
 #define RGB_SILVER       0xC0C0C0
 
-#define LEDRGB_MAX_LEN  100
+#define LEDRGB_TOTAL_LEN  100
 
 void LedrgbInit(void);
 void LedrgbOn(uint32_t color);

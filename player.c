@@ -20,7 +20,6 @@ static uint32_t EEMEM tracksAddrMem[PLAYER_MAX_TRACKS];
 static uint32_t EEMEM tracksLenMem[PLAYER_MAX_TRACKS];
 
 static uint8_t sound;
-static uint32_t trackPos = 0;
 static uint32_t trackLen = 0;
 
 /****************************************************************************
@@ -30,6 +29,7 @@ static uint32_t trackLen = 0;
 volatile bool PlayerActive = false;
 uint32_t PlayerTracksAddr[PLAYER_MAX_TRACKS];
 uint32_t PlayerTracksLen[PLAYER_MAX_TRACKS];
+volatile uint32_t PlayerTrackPos = 0;
 uint16_t PlayerMaxValue;
 
 /****************************************************************************
@@ -42,7 +42,7 @@ uint16_t PlayerMaxValue;
 
 ISR(TIMER1_OVF_vect)
 {
-  if (++trackPos < trackLen)
+  if (++PlayerTrackPos < trackLen)
   {
     OCR1AL = sound;
     DataflashReadContiniousNext();
@@ -105,7 +105,7 @@ void PlayerStart(uint8_t track)
     PlayerActive = true;
     DataflashReadContinious(PlayerTracksAddr[track], &sound);
     trackLen = PlayerTracksLen[track];
-    trackPos = 0;
+    PlayerTrackPos = 0;
     OCR1AL = sound;
     DataflashReadContiniousNext();
     TCCR1A |= (1 << COM1A1) | (0 << COM1A0);

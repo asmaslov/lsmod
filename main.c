@@ -27,6 +27,9 @@ bool loadTrackActive = false;
 uint8_t loadTrackIdx = 0;
 uint32_t loadTrackPos = 0;
 uint8_t loadTrackLen = 0;
+uint32_t deltaTrackPos = 0;
+uint32_t nexTrackPos = 0;
+uint8_t lsmodLen = 0;
 
 void initBoard(void)
 {
@@ -212,16 +215,34 @@ int main(void)
       if (!activated)
       {
         led2(true);
+        deltaTrackPos = PlayerTracksLen[TRACK_TURNON] / LEDRGB_TOTAL_LEN;
+        nexTrackPos = deltaTrackPos;
+        lsmodLen = 1;
         PlayerStart(TRACK_TURNON);
-        while (PlayerActive);
+        while (PlayerActive)
+        {
+          while ((PlayerTrackPos < nexTrackPos) && PlayerActive);
+          LedrgbSet(LSMOD_COLOR, lsmodLen);
+          lsmodLen++;
+          nexTrackPos += deltaTrackPos;
+        }
         LedrgbOn(LSMOD_COLOR);
         activated = true;
       }
       else
       {
         activated = false;
+        deltaTrackPos = PlayerTracksLen[TRACK_TURNOFF] / LEDRGB_TOTAL_LEN;
+        nexTrackPos = deltaTrackPos;
+        lsmodLen = LEDRGB_TOTAL_LEN;
         PlayerStart(TRACK_TURNOFF);
-        while (PlayerActive);
+        while (PlayerActive)
+        {
+          while ((PlayerTrackPos < nexTrackPos) && PlayerActive);
+          LedrgbSet(LSMOD_COLOR, lsmodLen);
+          lsmodLen--;
+          nexTrackPos += deltaTrackPos;
+        }      
         LedrgbOff();
         led2(false);
       }

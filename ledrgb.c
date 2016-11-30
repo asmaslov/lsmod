@@ -120,7 +120,7 @@ void LedrgbOn(uint32_t color)
 {
   uint8_t i;
   
-  for (i = 0; i < LEDRGB_MAX_LEN; ++i)
+  for (i = 0; i < LEDRGB_TOTAL_LEN; ++i)
   {
     setColor(color);
   }
@@ -131,7 +131,7 @@ void LedrgbOff(void)
 {
   uint8_t i;
   
-  for (i = 0; i < LEDRGB_MAX_LEN; ++i)
+  for (i = 0; i < LEDRGB_TOTAL_LEN; ++i)
   {
     setColor(0);
   }
@@ -143,7 +143,7 @@ void LedrgbSet(uint32_t color, uint8_t len)
   uint8_t i;
   
   assert(len > 0);
-  assert(len <= LEDRGB_MAX_LEN);
+  assert(len <= LEDRGB_TOTAL_LEN);
   for (i = 1; i <= len; ++i)
   {
     setColor(color);
