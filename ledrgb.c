@@ -142,11 +142,17 @@ void LedrgbSet(uint32_t color, uint8_t len)
 {
   uint8_t i;
   
-  assert(len > 0);
   assert(len <= LEDRGB_TOTAL_LEN);
-  for (i = 1; i <= len; ++i)
+  if (len > 0)
   {
-    setColor(color);
+    for (i = 1; i <= len; ++i)
+    {
+      setColor(color);
+    }
+  }
+  else
+  {
+    LedrgbOff();
   }
   bitStop();
 }
