@@ -15,6 +15,7 @@
   #include "accel_adxl330.h"
 #endif
 #include "player.h"
+#include "ledrgb.h"
 
 #include "debug.h"
 
@@ -34,7 +35,7 @@ void initBoard(void)
   PORTC = 0x00;
   DDRC = 0x00;
   PORTD = (1 << PD4) | (1 << PD7);
-  DDRD = (1 << DDD4) | (1 << DDD6) | (1 << DDD7);
+  DDRD = (1 << DDD4) | (1 << DDD7);
 }
 
 #define BUTTON_PRESSED  (~PINB & (1 << PINB0))
@@ -199,6 +200,7 @@ int main(void)
 #ifdef ADXL330_USED
   Adxl330_Init();
 #endif
+  LedrgbInit();
   while(1)
   {
     if (ComportIsDataToParse && !ComportNeedFeedback && !activated && !PlayerActive)
@@ -212,6 +214,7 @@ int main(void)
         led2(true);
         PlayerStart(TRACK_TURNON);
         while (PlayerActive);
+        LedrgbOn(LSMOD_COLOR);
         activated = true;
       }
       else
@@ -219,6 +222,7 @@ int main(void)
         activated = false;
         PlayerStart(TRACK_TURNOFF);
         while (PlayerActive);
+        LedrgbOff();
         led2(false);
       }
     }

@@ -11,6 +11,8 @@
 #define LSMOD_ADDR  0x21
 #define PC_ADDR     0xA1
 
+#define LSMOD_COLOR  RGB_ORCHID
+
 #define TRACK_TURNON   0
 #define TRACK_HUM      1
 #define TRACK_SWING    2
