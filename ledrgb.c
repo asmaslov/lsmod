@@ -103,10 +103,6 @@ static void bitStop(void)
 }
 
 /****************************************************************************
- * Interrupt handler functions                                              *
- ****************************************************************************/
-
-/****************************************************************************
  * Public functions                                                         *
  ****************************************************************************/
 
@@ -135,7 +131,7 @@ void LedrgbOff(void)
   {
     setColor(0);
   }
-  bitStop();  
+  bitStop();
 }
 
 void LedrgbSet(uint32_t color, uint8_t len)
@@ -149,10 +145,10 @@ void LedrgbSet(uint32_t color, uint8_t len)
     {
       setColor(color);
     }
+    bitStop();
   }
   else
   {
     LedrgbOff();
   }
-  bitStop();
 }
