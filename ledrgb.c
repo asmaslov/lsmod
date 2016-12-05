@@ -4,8 +4,6 @@
 #include <avr/interrupt.h>
 #include <util/delay.h>
 #include <math.h>
-#include <assert.h>
-#include <stdlib.h>
 
 /****************************************************************************
  * Private types/enumerations/variables                                     *
@@ -143,7 +141,10 @@ void LedrgbSet(uint32_t color, uint8_t len)
 {
   uint8_t i;
   
-  assert(len <= LEDRGB_TOTAL_LEN);
+  if (len > LEDRGB_TOTAL_LEN)
+  {
+    len = LEDRGB_TOTAL_LEN;
+  }
   if (len > 0)
   {
     cli();
