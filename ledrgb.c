@@ -1,6 +1,7 @@
 #include "ledrgb.h"
 
 #include <avr/io.h>
+#include <avr/interrupt.h>
 #include <util/delay.h>
 #include <math.h>
 #include <assert.h>
@@ -73,16 +74,16 @@ static void bit1(void)
 
 static void setColor(uint32_t color)
 {
-  uint8_t i, j;
+  int8_t i, j;
   uint8_t grb[3];
   
   grb[0] = (uint8_t)(color >> 8);
   grb[1] = (uint8_t)(color >> 16);
   grb[2] = (uint8_t)color;
   
-  for (i = 0; i < 3; ++i)
+  for (i = 0; i < 3; i++)
   {
-    for (j = 0; j < 7; ++j)
+    for (j = 7; j >= 0; j--)
     {
       if (grb[i] & (1 << j))
       {
@@ -116,21 +117,25 @@ void LedrgbOn(uint32_t color)
 {
   uint8_t i;
   
+  cli();
   for (i = 0; i < LEDRGB_TOTAL_LEN; ++i)
   {
     setColor(color);
   }
-  bitStop();  
+  sei();
+  bitStop();
 }
 
 void LedrgbOff(void)
 {
   uint8_t i;
   
+  cli();
   for (i = 0; i < LEDRGB_TOTAL_LEN; ++i)
   {
     setColor(0);
   }
+  sei();
   bitStop();
 }
 
@@ -141,10 +146,19 @@ void LedrgbSet(uint32_t color, uint8_t len)
   assert(len <= LEDRGB_TOTAL_LEN);
   if (len > 0)
   {
+    cli();
     for (i = 1; i <= len; ++i)
     {
       setColor(color);
     }
+    if (len < LEDRGB_TOTAL_LEN)
+    {
+      for (i = len + 1; i <= LEDRGB_TOTAL_LEN; ++i)
+      {
+        setColor(0);
+      }
+    }
+    sei();
     bitStop();
   }
   else

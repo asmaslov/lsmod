@@ -29,7 +29,7 @@ uint32_t loadTrackPos = 0;
 uint8_t loadTrackLen = 0;
 uint32_t deltaTrackPos = 0;
 uint32_t nexTrackPos = 0;
-uint8_t lsmodLen = 0;
+int8_t lsmodLen = 0;
 
 void initBoard(void)
 {
@@ -227,6 +227,13 @@ int main(void)
           nexTrackPos += deltaTrackPos;
         }
         LedrgbOn(LSMOD_COLOR);
+      #ifdef MMA7455L_USED
+        Mma7455l_MotionDetected = false;
+      #endif
+      #ifdef ADXL330_USED
+        Adxl330_HitDetected = false;
+        Adxl330_MotionDetected = false;
+      #endif
         activated = true;
       }
       else
@@ -257,6 +264,7 @@ int main(void)
       {
         swing = false;
       }
+    #ifndef CLASH_DISABLE
       if (!hit)
       {
         if (SENSOR_ACTIVE && !clash)
@@ -276,6 +284,7 @@ int main(void)
           PlayerStop();        
         }
       }
+    #endif
     #ifdef MMA7455L_USED
       if (Mma7455l_MotionDetected)
       {

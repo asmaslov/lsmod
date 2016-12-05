@@ -4,6 +4,8 @@
 //#define MMA7455L_USED
 #define ADXL330_USED
 
+//#define CLASH_DISABLE
+
 #ifndef F_CPU
   #define F_CPU  20000000
 #endif
@@ -11,7 +13,7 @@
 #define LSMOD_ADDR  0x21
 #define PC_ADDR     0xA1
 
-#define LSMOD_COLOR  RGB_ORCHID
+#define LSMOD_COLOR  RGB_ORANGE_RED
 
 #define TRACK_TURNON   0
 #define TRACK_HUM      1
