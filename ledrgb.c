@@ -1,6 +1,7 @@
 #include "ledrgb.h"
 
 #include <avr/io.h>
+#include <avr/eeprom.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
 #include <math.h>
@@ -9,9 +10,13 @@
  * Private types/enumerations/variables                                     *
  ****************************************************************************/
 
+static uint32_t EEMEM colorMem;
+
 /****************************************************************************
  * Public types/enumerations/variables                                      *
  ****************************************************************************/
+
+uint32_t LedrgbColor;
 
 /****************************************************************************
  * Private functions                                                        *
@@ -109,6 +114,20 @@ void LedrgbInit(void)
 {
   PORTD &= ~(1 << PD6);
   DDRD |= (1 << DDD6);
+}
+
+void LedrgbLoadColor(void)
+{
+  cli();
+  LedrgbColor = eeprom_read_dword(&colorMem);
+  sei();
+}
+
+void LedrgbSaveColor(void)
+{
+  cli();
+  eeprom_write_dword(&colorMem, LedrgbColor);
+  sei();
 }
 
 void LedrgbOn(uint32_t color)

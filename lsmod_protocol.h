@@ -14,6 +14,7 @@
 
 #define LSMOD_CONTROL_PING        0x00
 #define LSMOD_CONTROL_STAT        0x01
+#define LSMOD_CONTROL_COLOR       0x02
 #define LSMOD_CONTROL_LOAD_BEGIN  0x10
 #define LSMOD_CONTROL_LOAD        0x11
 #define LSMOD_CONTROL_LOAD_END    0x12

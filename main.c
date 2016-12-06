@@ -100,6 +100,15 @@ void commandHandler(void* args)
         ComportReplyStat(0, 0, 0, 0, 0, 0);
       #endif
         break;
+      case LSMOD_CONTROL_COLOR:
+        LedrgbColor = packet->data[0];
+        LedrgbColor = LedrgbColor << 8;
+        LedrgbColor += packet->data[1];
+        LedrgbColor = LedrgbColor << 8;
+        LedrgbColor += packet->data[2];
+        LedrgbSaveColor();
+        ComportReplyAck(LSMOD_CONTROL_COLOR);
+        break;
       case LSMOD_CONTROL_LOAD_BEGIN:
         if (packet->data[0] == loadTrackIdx)
         {
@@ -204,6 +213,7 @@ int main(void)
   Adxl330_Init();
 #endif
   LedrgbInit();
+  LedrgbLoadColor();
   while(1)
   {
     if (ComportIsDataToParse && !ComportNeedFeedback && !activated && !PlayerActive)
@@ -222,11 +232,11 @@ int main(void)
         while (PlayerActive)
         {
           while ((PlayerTrackPos < nexTrackPos) && PlayerActive);
-          LedrgbSet(LSMOD_COLOR, lsmodLen);
+          LedrgbSet(LedrgbColor, lsmodLen);
           lsmodLen++;
           nexTrackPos += deltaTrackPos;
         }
-        LedrgbOn(LSMOD_COLOR);
+        LedrgbOn(LedrgbColor);
       #ifdef MMA7455L_USED
         Mma7455l_MotionDetected = false;
       #endif
@@ -246,7 +256,7 @@ int main(void)
         while (PlayerActive)
         {
           while ((PlayerTrackPos < nexTrackPos) && PlayerActive);
-          LedrgbSet(LSMOD_COLOR, lsmodLen);
+          LedrgbSet(LedrgbColor, lsmodLen);
           lsmodLen--;
           nexTrackPos += deltaTrackPos;
         }      

@@ -22,7 +22,11 @@
 
 #define LEDRGB_TOTAL_LEN  30
 
+extern uint32_t LedrgbColor;
+
 void LedrgbInit(void);
+void LedrgbLoadColor(void);
+void LedrgbSaveColor(void);
 void LedrgbOn(uint32_t color);
 void LedrgbOff(void);
 void LedrgbSet(uint32_t color, uint8_t len);

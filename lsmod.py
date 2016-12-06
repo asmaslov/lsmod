@@ -41,6 +41,7 @@ LSMOD_STAT_MAX_LEN =   6
 
 LSMOD_CONTROL_PING       = 0x00
 LSMOD_CONTROL_STAT       = 0x01
+LSMOD_CONTROL_COLOR      = 0x02
 LSMOD_CONTROL_LOAD_BEGIN = 0x10
 LSMOD_CONTROL_LOAD       = 0x11
 LSMOD_CONTROL_LOAD_END   = 0x12
@@ -332,6 +333,7 @@ class MainWindow(QtGui.QMainWindow):
         if code:
             num = int('0x%s' % code, 16)
             self.ui.textEdit.append('Set color #%X' % num)
+            self.sendPacket(LSMOD_CONTROL_COLOR, [((num >> 16) & 0xFF), ((num >> 8) & 0xFF), num & 0xFF])
 
     def pickFile(self):
         if (self.trackIdx == 0) and QtCore.QFile.exists(self.turnOnFile):
@@ -523,6 +525,8 @@ class MainWindow(QtGui.QMainWindow):
                                 self.loadActivated.emit()
                             elif packet[4] == LSMOD_CONTROL_LOAD_END:
                                 self.loadEnd.emit()
+                            elif packet[4] == LSMOD_CONTROL_COLOR:
+                                self.ui.textEdit.append('Color set')
                         elif packet[3] == LSMOD_REPLY_LOADED:
                             self.loadRepeat.stop()
                             self.trackPos = self.trackPos + packet[4]
