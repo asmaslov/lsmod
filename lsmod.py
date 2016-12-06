@@ -14,19 +14,9 @@ PC_ADDR    = 0xA1
 
 MAX_TRACKS = 6
 
-TOTAL_COLORS = 9
-RGB_RED         = 0xFF0000
-RGB_ORANGE_RED  = 0xFF4500
-RGB_YELLOW      = 0xFFFF00
-RGB_GREEN       = 0x00FF00
-RGB_TURQUOISE   = 0x40E0D0
-RGB_DODGER_BLUE = 0x1E90FF
-RGB_BLUE_VIOLET = 0x8A2BE2
-RGB_PURPLE      = 0x800080
-RGB_ORCHID      = 0xDA70D6
-Colors = [RGB_RED, RGB_ORANGE_RED, RGB_YELLOW, \
-          RGB_GREEN, RGB_TURQUOISE, RGB_DODGER_BLUE, \
-          RGB_BLUE_VIOLET, RGB_PURPLE, RGB_ORCHID]
+Colors = [0x778899, 0x191970, 0x4682b4, \
+          0xee4000, 0xff8c00, 0xcd0000, \
+          0x006400, 0x9400d3, 0x228b22]
 
 LSMOD_BAUDRATE = 115200
 
@@ -117,13 +107,14 @@ class MainWindow(QtGui.QMainWindow):
         self.loadContinue.connect(self.loadSamples)
         self.loadRepeat.timeout.connect(self.loadSamples)
         self.loadEnd.connect(self.endLoad)
-        for i in range(int(np.sqrt(TOTAL_COLORS))):
-            for j in range(int(np.sqrt(TOTAL_COLORS))):
+        assert(np.sqrt(len(Colors)) % 1 == 0)
+        for i in range(int(np.sqrt(len(Colors)))):
+            for j in range(int(np.sqrt(len(Colors)))):
                 self.pushButtonColors[(i, j)] = QtGui.QPushButton()
                 self.pushButtonColors[(i, j)].setCheckable(True)
                 self.pushButtonColors[(i, j)].setStyleSheet( \
                     "QPushButton {\n" \
-                    + "background-color: #%06x;" % Colors[i * int(np.sqrt(TOTAL_COLORS)) + j] \
+                    + "background-color: #%06x;" % Colors[i * int(np.sqrt(len(Colors))) + j] \
                     + "border: 1px solid gray;" \
                     + "border-radius: 10px;" \
                     + "padding: 10px;" \
@@ -332,7 +323,7 @@ class MainWindow(QtGui.QMainWindow):
         code = self.ui.lineEditCode.text()
         if code:
             num = int('0x%s' % code, 16)
-            self.ui.textEdit.append('Set color #%X' % num)
+            self.ui.textEdit.append('Set color #%06X' % num)
             self.sendPacket(LSMOD_CONTROL_COLOR, [((num >> 16) & 0xFF), ((num >> 8) & 0xFF), num & 0xFF])
 
     def pickFile(self):
