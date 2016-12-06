@@ -14,6 +14,20 @@ PC_ADDR    = 0xA1
 
 MAX_TRACKS = 6
 
+TOTAL_COLORS = 9
+RGB_RED         = 0xFF0000
+RGB_ORANGE_RED  = 0xFF4500
+RGB_YELLOW      = 0xFFFF00
+RGB_GREEN       = 0x00FF00
+RGB_TURQUOISE   = 0x40E0D0
+RGB_DODGER_BLUE = 0x1E90FF
+RGB_BLUE_VIOLET = 0x8A2BE2
+RGB_PURPLE      = 0x800080
+RGB_ORCHID      = 0xDA70D6
+Colors = [RGB_RED, RGB_ORANGE_RED, RGB_YELLOW, \
+          RGB_GREEN, RGB_TURQUOISE, RGB_DODGER_BLUE, \
+          RGB_BLUE_VIOLET, RGB_PURPLE, RGB_ORCHID]
+
 LSMOD_BAUDRATE = 115200
 
 LSMOD_PACKET_HDR = 0xDA
@@ -67,6 +81,8 @@ class MainWindow(QtGui.QMainWindow):
     loadRepeat = QtCore.QTimer()
     loadRepeatPeriodMs = 100
     loadEnd = pyqtSignal()
+    pushButtonColorsGroup = QtGui.QButtonGroup()
+    pushButtonColors = {}
     
     def __init__(self):
         super(MainWindow, self).__init__()
@@ -100,7 +116,31 @@ class MainWindow(QtGui.QMainWindow):
         self.loadContinue.connect(self.loadSamples)
         self.loadRepeat.timeout.connect(self.loadSamples)
         self.loadEnd.connect(self.endLoad)
-        self.ui.horizontalSliderX.enabledChange(False)
+        for i in range(int(np.sqrt(TOTAL_COLORS))):
+            for j in range(int(np.sqrt(TOTAL_COLORS))):
+                self.pushButtonColors[(i, j)] = QtGui.QPushButton()
+                self.pushButtonColors[(i, j)].setCheckable(True)
+                self.pushButtonColors[(i, j)].setStyleSheet( \
+                    "QPushButton {\n" \
+                    + "background-color: #%06x;" % Colors[i * int(np.sqrt(TOTAL_COLORS)) + j] \
+                    + "border: 1px solid gray;" \
+                    + "border-radius: 10px;" \
+                    + "padding: 10px;" \
+                    + "}" +
+                    "QPushButton:focus {\n" \
+                    + "border: none;" \
+                    + "outline: none;" \
+                    + "}" +
+                    "QPushButton:checked {\n" \
+                    + "border: 2px solid black;" \
+                    + "}")
+                self.pushButtonColorsGroup.addButton(self.pushButtonColors[(i, j)])
+                self.ui.gridLayoutColors.addWidget(self.pushButtonColors[(i, j)], i, j)
+        self.pushButtonColorsGroup.buttonClicked.connect(self.typeCode)
+
+    def typeCode(self, button):
+        color = button.palette().color(QtGui.QPalette.Background)
+        self.ui.lineEditCode.setText("%02X%02X%02X" % (color.red(), color.green(), color.blue()))
 
     def closeEvent(self, event):
         choice = QtGui.QMessageBox.question(self, 'Exit', 'Are you sure?', QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
@@ -287,6 +327,12 @@ class MainWindow(QtGui.QMainWindow):
         self.trackIdx = 0
         self.pickFile()
 
+    def on_pushButtonSet_released(self):
+        code = self.ui.lineEditCode.text()
+        if code:
+            num = int('0x%s' % code, 16)
+            self.ui.textEdit.append('Set color #%X' % num)
+
     def pickFile(self):
         if (self.trackIdx == 0) and QtCore.QFile.exists(self.turnOnFile):
             self.loadedFile = self.turnOnFile
@@ -391,10 +437,12 @@ class MainWindow(QtGui.QMainWindow):
         if arg:
             self.triggerTestStatus = 1
             self.ui.pushButtonLoad.setEnabled(False)
+            self.ui.pushButtonSet.setEnabled(False)
             self.get.start(self.getPeriodMs)
         else:
             self.triggerTestStatus = 0
             self.ui.pushButtonLoad.setEnabled(True)
+            self.ui.pushButtonSet.setEnabled(True)
             self.get.stop()
 
     @QtCore.pyqtSlot(bool)
@@ -439,6 +487,7 @@ class MainWindow(QtGui.QMainWindow):
             font.setBold(True)
             self.ui.labelConnection.setFont(font)
             self.ui.pushButtonLoad.setEnabled(True)
+            self.ui.pushButtonSet.setEnabled(True)
             self.ui.pushButtonTest.setEnabled(True)
             self.ui.textEdit.append('Connected to ' + name)
 
