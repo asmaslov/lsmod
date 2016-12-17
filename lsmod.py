@@ -14,9 +14,9 @@ PC_ADDR    = 0xA1
 
 MAX_TRACKS = 6
 
-Colors = [0x778899, 0x191970, 0x4682b4, \
-          0xee4000, 0xff8c00, 0xcd0000, \
-          0x006400, 0x9400d3, 0x228b22]
+LedColors = {'#d3d3d3' : 0x778899, '#0000ff' : 0x191970, '#add8e6' : 0x4682b4, \
+             '#ffa500' : 0xee4000, '#ffff00' : 0xff8c00, '#ff0000' : 0xcd0000, \
+             '#008000' : 0x006400, '#800080' : 0x9400d3, '#40e0d0' : 0x228b22}
 
 LSMOD_BAUDRATE = 115200
 
@@ -107,14 +107,14 @@ class MainWindow(QtGui.QMainWindow):
         self.loadContinue.connect(self.loadSamples)
         self.loadRepeat.timeout.connect(self.loadSamples)
         self.loadEnd.connect(self.endLoad)
-        assert(np.sqrt(len(Colors)) % 1 == 0)
-        for i in range(int(np.sqrt(len(Colors)))):
-            for j in range(int(np.sqrt(len(Colors)))):
+        assert(np.sqrt(len(LedColors)) % 1 == 0)
+        for i in range(int(np.sqrt(len(LedColors)))):
+            for j in range(int(np.sqrt(len(LedColors)))):
                 self.pushButtonColors[(i, j)] = QtGui.QPushButton()
                 self.pushButtonColors[(i, j)].setCheckable(True)
                 self.pushButtonColors[(i, j)].setStyleSheet( \
                     "QPushButton {\n" \
-                    + "background-color: #%06x;" % Colors[i * int(np.sqrt(len(Colors))) + j] \
+                    + "background-color: %s;" % sorted(LedColors.items(), key = lambda x : x[1])[i * int(np.sqrt(len(LedColors))) + j][0] \
                     + "border: 1px solid gray;" \
                     + "border-radius: 10px;" \
                     + "padding: 10px;" \
@@ -132,7 +132,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def typeCode(self, button):
         color = button.palette().color(QtGui.QPalette.Background)
-        self.ui.lineEditCode.setText("%02X%02X%02X" % (color.red(), color.green(), color.blue()))
+        self.ui.lineEditCode.setText("#%06X" % (LedColors[str(color.name())]))
 
     def closeEvent(self, event):
         choice = QtGui.QMessageBox.question(self, 'Exit', 'Are you sure?', QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
@@ -320,7 +320,7 @@ class MainWindow(QtGui.QMainWindow):
         self.pickFile()
 
     def on_pushButtonSet_released(self):
-        code = self.ui.lineEditCode.text()
+        code = self.ui.lineEditCode.text()[-6:]
         if code:
             num = int('0x%s' % code, 16)
             self.ui.textEdit.append('Set color #%06X' % num)
