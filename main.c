@@ -21,6 +21,8 @@
 
 bool activated = false;
 bool hit = false;
+uint32_t sensorTimeCount = 0;
+bool sensorTimeReach = false;
 bool clash = false;
 bool swing = false;
 bool loadTrackActive = false;
@@ -275,19 +277,33 @@ int main(void)
         swing = false;
       }
     #ifndef CLASH_DISABLE
+      if (SENSOR_ACTIVE && !sensorTimeReach)
+      {
+        sensorTimeCount++;
+        if (sensorTimeCount > SENSOR_DELAY_TICKS)
+        {
+          sensorTimeReach = true;
+          sensorTimeCount = 0;
+        }
+      }
+      if (!SENSOR_ACTIVE)
+      {
+        sensorTimeReach = false;
+        sensorTimeCount = 0;
+      }
       if (!hit)
       {
-        if (SENSOR_ACTIVE && !clash)
+        if (sensorTimeReach && !clash)
         {
           clash = true;
           led1(true);
           PlayerStart(TRACK_CLASH);
         }
-        if (clash && SENSOR_ACTIVE && !PlayerActive)
+        if (clash && sensorTimeReach && !PlayerActive)
         {
           PlayerStart(TRACK_CLASH);
         }
-        if (clash && !SENSOR_ACTIVE)
+        if (clash && !sensorTimeReach)
         {
           clash = false;
           led1(false);

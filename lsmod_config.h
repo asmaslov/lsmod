@@ -5,6 +5,7 @@
 #define ADXL330_USED
 
 //#define CLASH_DISABLE
+#define SENSOR_DELAY_TICKS  10000
 
 #ifndef F_CPU
   #define F_CPU  20000000
