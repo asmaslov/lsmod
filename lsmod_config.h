@@ -7,6 +7,19 @@
 //#define CLASH_DISABLE
 #define SENSOR_DELAY_TICKS  10000
 
+#define VOLTAGE_DELAY_TICKS  100000
+#define VOLTAGE_CHAN      3
+#define VOLTAGE_ACCUMUL   100
+#define VOLTAGE_MUL       125
+#define VOLTAGE_MAX       90
+#define VOLTAGE_HIGH      86
+#define REDUCE_HIGH       2
+#define VOLTAGE_AVERAGE   76
+#define REDUCE_AVERAGE    4
+#define VOLTAGE_LOW       70
+#define REDUCE_LOW        16    
+#define VOLTAGE_CRITICAL  68
+
 #ifndef F_CPU
   #define F_CPU  20000000
 #endif

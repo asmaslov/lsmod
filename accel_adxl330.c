@@ -151,7 +151,6 @@ void Adxl330_Init(void)
   xcount = 0;
   ycount = 0;
   zcount = 0;
-  ADC_Init();
   rawX = ADC_ChannelSetup(ADXL330_CHAN_X, readyX);
   rawY = ADC_ChannelSetup(ADXL330_CHAN_Y, readyY);
   rawZ = ADC_ChannelSetup(ADXL330_CHAN_Z, readyZ);

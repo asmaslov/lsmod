@@ -5,7 +5,6 @@
 #include <stdbool.h>
 
 #define LEDRGB_TOTAL_LEN  58
-#define LEDRGB_REDUCED    32
 
 extern uint32_t LedrgbColor;
 

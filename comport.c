@@ -315,7 +315,7 @@ void ComportReplyLoaded(uint8_t bytes)
   ComportNeedFeedback = false;
 }
 
-void ComportReplyStat(uint8_t axh, uint8_t axl, uint8_t ayh, uint8_t ayl, uint8_t azh, uint8_t azl)
+void ComportReplyStat(uint8_t axh, uint8_t axl, uint8_t ayh, uint8_t ayl, uint8_t azh, uint8_t azl, uint8_t vlt)
 {
   packet.to = packet.from;
   packet.cmd = LSMOD_REPLY_STAT;
@@ -325,7 +325,8 @@ void ComportReplyStat(uint8_t axh, uint8_t axl, uint8_t ayh, uint8_t ayl, uint8_
   packet.data[3] = ayl;
   packet.data[4] = azh;
   packet.data[5] = azl;
-  packet.len = 6;
+  packet.data[6] = vlt;
+  packet.len = 7;
   send();
   ComportNeedFeedback = false;
 }

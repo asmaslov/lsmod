@@ -550,6 +550,7 @@ class MainWindow(QtGui.QMainWindow):
                                 self.ui.horizontalSliderX.setValue(realX)
                                 self.ui.horizontalSliderY.setValue(realY)
                                 self.ui.horizontalSliderZ.setValue(realZ)
+                                self.ui.lineEditVoltage.setText('%2.1f V' % (float(data[6]) / 10))
                             else:
                                 self.ui.textEdit.append('No data')
                         elif packet[3] == LSMOD_REPLY_ERROR:

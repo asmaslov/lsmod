@@ -9,7 +9,7 @@
 #define ADC_VREF  ((0 << REFS0) | (0 << REFS1))  // AREF pin
 #define ADC_ADTS  ((0 << ADTS2) | (0 << ADTS1) | (0 << ADTS0))  // Free running
 #define ADC_ADPS  ((1 << ADPS2) | (0 << ADPS1) | (1 << ADPS0))  // 625 kHz (20 MHz clock)
-#define ADC_MAX_VALUE  0x350
+#define ADC_MAX_VALUE  0x400
 
 typedef void (*ADCHandler)(void);
 

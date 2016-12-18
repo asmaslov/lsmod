@@ -401,9 +401,9 @@
     <property name="geometry">
      <rect>
       <x>370</x>
-      <y>60</y>
+      <y>90</y>
       <width>120</width>
-      <height>171</height>
+      <height>141</height>
      </rect>
     </property>
     <property name="title">
@@ -437,7 +437,7 @@
        <x>10</x>
        <y>50</y>
        <width>101</width>
-       <height>31</height>
+       <height>21</height>
       </rect>
      </property>
      <property name="minimum">
@@ -460,9 +460,9 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>90</y>
+       <y>80</y>
        <width>101</width>
-       <height>31</height>
+       <height>21</height>
       </rect>
      </property>
      <property name="minimum">
@@ -485,9 +485,9 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>130</y>
+       <y>110</y>
        <width>101</width>
-       <height>31</height>
+       <height>21</height>
       </rect>
      </property>
      <property name="minimum">
@@ -513,7 +513,7 @@
       <x>370</x>
       <y>10</y>
       <width>121</width>
-      <height>41</height>
+      <height>71</height>
      </rect>
     </property>
     <property name="title">
@@ -530,6 +530,19 @@
      </property>
      <property name="text">
       <string>Disconnected</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="lineEditVoltage">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>40</y>
+       <width>81</width>
+       <height>21</height>
+      </rect>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>

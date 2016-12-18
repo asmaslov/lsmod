@@ -106,28 +106,6 @@ static void bitStop(void)
   _delay_us(50);
 }
 
-#ifdef LEDRGB_REDUCED
-static uint32_t reduce(uint32_t val)
-{
-  uint8_t bytes[3];
-  uint32_t res;
-  
-  bytes[0] = (uint8_t)val;
-  bytes[0] /= LEDRGB_REDUCED;
-  bytes[1] = (uint8_t)(val >> 8);
-  bytes[1] /= LEDRGB_REDUCED;
-  bytes[2] = (uint8_t)(val >> 16);
-  bytes[2] /= LEDRGB_REDUCED;
-  res = 0;
-  res += bytes[2];
-  res <<= 8;
-  res += bytes[1];
-  res <<= 8;
-  res += bytes[0];
-  return res;
-}
-#endif
-
 /****************************************************************************
  * Public functions                                                         *
  ****************************************************************************/
@@ -142,9 +120,6 @@ void LedrgbLoadColor(void)
 {
   cli();
   LedrgbColor = eeprom_read_dword(&colorMem);
-#ifdef LEDRGB_REDUCED
-  LedrgbColor = reduce(LedrgbColor);
-#endif
   sei();
 }
 
