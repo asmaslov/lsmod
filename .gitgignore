@@ -1,7 +1,0 @@
-.hg
-Debug*
-build*
-dist*
-ui_*.py*
-*.spec
-*.atsuo
