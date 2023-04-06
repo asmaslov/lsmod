@@ -1,0 +1,97 @@
+<b>Partlist exported from D:/Cloud/Work/LightSound/lsmod.sch at 26.10.2016 12:18:49</b>
+<p>
+Assembly variant: <p>
+<table>
+<tr><td><b>Part</b></td><td><b>Value</b></td><td><b>Device</b></td><td><b>Package</b></td><td><b>Description</b></td></tr>
+<tr><td>5G</td><td></td><td>2,54/1,0</td><td>2,54/1,0</td><td>THROUGH-HOLE PAD</td></tr>
+<tr><td>5V</td><td></td><td>2,54/1,0</td><td>2,54/1,0</td><td>THROUGH-HOLE PAD</td></tr>
+<tr><td>9G</td><td></td><td>2,54/1,0</td><td>2,54/1,0</td><td>THROUGH-HOLE PAD</td></tr>
+<tr><td>9V</td><td></td><td>2,54/1,0</td><td>2,54/1,0</td><td>THROUGH-HOLE PAD</td></tr>
+<tr><td>BRI</td><td></td><td>2,54/1,0</td><td>2,54/1,0</td><td>THROUGH-HOLE PAD</td></tr>
+<tr><td>C1</td><td>10u</td><td>C-EUC0805</td><td>C0805</td><td>CAPACITOR, European symbol</td></tr>
+<tr><td>C2</td><td>100n</td><td>C-EUC0805</td><td>C0805</td><td>CAPACITOR, European symbol</td></tr>
+<tr><td>C3</td><td>10u</td><td>C-EUC0805</td><td>C0805</td><td>CAPACITOR, European symbol</td></tr>
+<tr><td>C4</td><td>100n</td><td>C-EUC0805</td><td>C0805</td><td>CAPACITOR, European symbol</td></tr>
+<tr><td>C5</td><td>100n</td><td>C-EUC0805</td><td>C0805</td><td>CAPACITOR, European symbol</td></tr>
+<tr><td>C6</td><td>100n</td><td>C-EUC0805</td><td>C0805</td><td>CAPACITOR, European symbol</td></tr>
+<tr><td>C7</td><td>100n</td><td>C-EUC0805</td><td>C0805</td><td>CAPACITOR, European symbol</td></tr>
+<tr><td>C8</td><td>100n</td><td>C-EUC0805</td><td>C0805</td><td>CAPACITOR, European symbol</td></tr>
+<tr><td>C9</td><td>100n</td><td>C-EUC0805</td><td>C0805</td><td>CAPACITOR, European symbol</td></tr>
+<tr><td>C10</td><td>100n</td><td>C-EUC0805</td><td>C0805</td><td>CAPACITOR, European symbol</td></tr>
+<tr><td>C11</td><td>22p</td><td>C-EUC0805</td><td>C0805</td><td>CAPACITOR, European symbol</td></tr>
+<tr><td>C12</td><td>22p</td><td>C-EUC0805</td><td>C0805</td><td>CAPACITOR, European symbol</td></tr>
+<tr><td>C13</td><td>100n</td><td>C-EUC0805</td><td>C0805</td><td>CAPACITOR, European symbol</td></tr>
+<tr><td>C14</td><td>100n</td><td>C-EUC0805</td><td>C0805</td><td>CAPACITOR, European symbol</td></tr>
+<tr><td>C15</td><td>470n</td><td>C-EUC0805</td><td>C0805</td><td>CAPACITOR, European symbol</td></tr>
+<tr><td>C16</td><td>470n</td><td>C-EUC0805</td><td>C0805</td><td>CAPACITOR, European symbol</td></tr>
+<tr><td>C17</td><td>470n</td><td>C-EUC0805</td><td>C0805</td><td>CAPACITOR, European symbol</td></tr>
+<tr><td>C18</td><td>100u</td><td>C-EUC0805</td><td>C0805</td><td>CAPACITOR, European symbol</td></tr>
+<tr><td>C19</td><td>47u</td><td>C-EUC0805</td><td>C0805</td><td>CAPACITOR, European symbol</td></tr>
+<tr><td>C20</td><td>100n</td><td>C-EUC0805</td><td>C0805</td><td>CAPACITOR, European symbol</td></tr>
+<tr><td>C21</td><td>470u</td><td>C-EUC0805</td><td>C0805</td><td>CAPACITOR, European symbol</td></tr>
+<tr><td>C22</td><td>330n</td><td>C-EUC0805</td><td>C0805</td><td>CAPACITOR, European symbol</td></tr>
+<tr><td>C23</td><td>100n</td><td>C-EUC0805</td><td>C0805</td><td>CAPACITOR, European symbol</td></tr>
+<tr><td>C24</td><td>47n</td><td>C-EUC0805</td><td>C0805</td><td>CAPACITOR, European symbol</td></tr>
+<tr><td>C25</td><td>22u</td><td>CPOL-EUE2-5</td><td>E2-5</td><td>POLARIZED CAPACITOR, European symbol</td></tr>
+<tr><td>IC1</td><td>ATMEGA168-20A</td><td>ATMEGA168-20A</td><td>TQFP32-08</td><td>MICROCONTROLLER</td></tr>
+<tr><td>IC2</td><td>MAX3232CSE</td><td>MAX3232CSE</td><td>SO16</td><td>True RS-232 Transceivers 3.0V to 5.5V, Low-Power</td></tr>
+<tr><td>IC3</td><td>LM2937-3.3</td><td>LM2937-3.3</td><td>SOT223</td><td>3.3V 500mA Voltage Regulator</td></tr>
+<tr><td>IC4</td><td>7805BG</td><td>7805BG</td><td>DPACK</td><td>5v Voltage Regulator</td></tr>
+<tr><td>IC5</td><td>PCA9306</td><td>PCA9306</td><td>SM8</td><td>Dual Bidirectional I2C Bus and SMBus Voltage-Level Translator</td></tr>
+<tr><td>IC6</td><td>MMA7455L</td><td>MMA7455L</td><td>LGA14</td><td>3-Axis, ±2 g/±4 g/±8 g/±16 g Digital Accelerometer</td></tr>
+<tr><td>IC7</td><td>AT45DB321</td><td>AT45DB321</td><td>SO08</td><td>32-megabit DataFlash</td></tr>
+<tr><td>IC8</td><td>ADXL330</td><td>ADXL330</td><td>LFCSP16</td><td>Small, Low Power, 3-Axis ±3 g iMEMS® Accelerometer</td></tr>
+<tr><td>IC9</td><td>AT42QT1012</td><td>AT42QT1012</td><td>SOT23-6</td><td>VOLTAGE REGULATOR</td></tr>
+<tr><td>L1</td><td>10u</td><td>L-USL2012C</td><td>L2012C</td><td>INDUCTOR, American symbol</td></tr>
+<tr><td>LED1</td><td>LED-SMD</td><td>LED-SMD</td><td>LED-SMD</td><td>Simple SMD LED Emitter</td></tr>
+<tr><td>LED2</td><td>LED-SMD</td><td>LED-SMD</td><td>LED-SMD</td><td>Simple SMD LED Emitter</td></tr>
+<tr><td>Q1</td><td>20MHz</td><td>CRYSTALHC49S</td><td>HC49/S</td><td>CRYSTAL</td></tr>
+<tr><td>R1</td><td>200K</td><td>R-EU_R0805</td><td>R0805</td><td>RESISTOR, European symbol</td></tr>
+<tr><td>R2</td><td>4K7</td><td>R-EU_R0805</td><td>R0805</td><td>RESISTOR, European symbol</td></tr>
+<tr><td>R3</td><td>4K7</td><td>R-EU_R0805</td><td>R0805</td><td>RESISTOR, European symbol</td></tr>
+<tr><td>R4</td><td>1K</td><td>R-EU_R0805</td><td>R0805</td><td>RESISTOR, European symbol</td></tr>
+<tr><td>R5</td><td>1K</td><td>R-EU_R0805</td><td>R0805</td><td>RESISTOR, European symbol</td></tr>
+<tr><td>R6</td><td>1K</td><td>R-EU_R0805</td><td>R0805</td><td>RESISTOR, European symbol</td></tr>
+<tr><td>R7</td><td>1K</td><td>R-EU_R0805</td><td>R0805</td><td>RESISTOR, European symbol</td></tr>
+<tr><td>R8</td><td>1K</td><td>R-EU_R0805</td><td>R0805</td><td>RESISTOR, European symbol</td></tr>
+<tr><td>R9</td><td>1K</td><td>R-EU_R0805</td><td>R0805</td><td>RESISTOR, European symbol</td></tr>
+<tr><td>R10</td><td>1K</td><td>R-EU_R0805</td><td>R0805</td><td>RESISTOR, European symbol</td></tr>
+<tr><td>R11</td><td>1K</td><td>R-EU_R0805</td><td>R0805</td><td>RESISTOR, European symbol</td></tr>
+<tr><td>R12</td><td>10K</td><td>R-EU_R0805</td><td>R0805</td><td>RESISTOR, European symbol</td></tr>
+<tr><td>R13</td><td>10K</td><td>R-EU_R0805</td><td>R0805</td><td>RESISTOR, European symbol</td></tr>
+<tr><td>R14</td><td>20K</td><td>R-EU_R0805</td><td>R0805</td><td>RESISTOR, European symbol</td></tr>
+<tr><td>R15</td><td>10K</td><td>R-EU_R0805</td><td>R0805</td><td>RESISTOR, European symbol</td></tr>
+<tr><td>R16</td><td>1K</td><td>R-EU_R0805</td><td>R0805</td><td>RESISTOR, European symbol</td></tr>
+<tr><td>R17</td><td>20K</td><td>R-EU_R0805</td><td>R0805</td><td>RESISTOR, European symbol</td></tr>
+<tr><td>R18</td><td>10K</td><td>R-EU_R0805</td><td>R0805</td><td>RESISTOR, European symbol</td></tr>
+<tr><td>R19</td><td>20K</td><td>R-EU_R0805</td><td>R0805</td><td>RESISTOR, European symbol</td></tr>
+<tr><td>R20</td><td>10K</td><td>R-EU_R0805</td><td>R0805</td><td>RESISTOR, European symbol</td></tr>
+<tr><td>R21</td><td>10K</td><td>R-EU_R0805</td><td>R0805</td><td>RESISTOR, European symbol</td></tr>
+<tr><td>R22</td><td>10K</td><td>R-EU_R0805</td><td>R0805</td><td>RESISTOR, European symbol</td></tr>
+<tr><td>R23</td><td>1M</td><td>R-EU_0207/10</td><td>0207/10</td><td>RESISTOR, European symbol</td></tr>
+<tr><td>R24</td><td>470K</td><td>R-EU_0207/10</td><td>0207/10</td><td>RESISTOR, European symbol</td></tr>
+<tr><td>R25</td><td>1K</td><td>R-EU_R0805</td><td>R0805</td><td>RESISTOR, European symbol</td></tr>
+<tr><td>R26</td><td>1K</td><td>R-EU_R0805</td><td>R0805</td><td>RESISTOR, European symbol</td></tr>
+<tr><td>R27</td><td>4K7</td><td>R-EU_R0805</td><td>R0805</td><td>RESISTOR, European symbol</td></tr>
+<tr><td>R28</td><td>1M</td><td>R-EU_R0805</td><td>R0805</td><td>RESISTOR, European symbol</td></tr>
+<tr><td>R29</td><td>10K</td><td>R-EU_R0805</td><td>R0805</td><td>RESISTOR, European symbol</td></tr>
+<tr><td>R30</td><td>10K</td><td>R-EU_R0805</td><td>R0805</td><td>RESISTOR, European symbol</td></tr>
+<tr><td>R31</td><td>10K</td><td>R-EU_R0805</td><td>R0805</td><td>RESISTOR, European symbol</td></tr>
+<tr><td>R32</td><td>5K</td><td>TRIM_EU-B25P</td><td>B25P</td><td>POTENTIOMETER</td></tr>
+<tr><td>RX</td><td></td><td>2,54/1,0</td><td>2,54/1,0</td><td>THROUGH-HOLE PAD</td></tr>
+<tr><td>S1</td><td></td><td>WS7770S</td><td>WS7770S</td><td>Dustproof button</td></tr>
+<tr><td>SNS</td><td></td><td>2,54/1,0</td><td>2,54/1,0</td><td>THROUGH-HOLE PAD</td></tr>
+<tr><td>SW1</td><td>PD-9-2</td><td>PD-9-2</td><td>PD-9-2</td><td>SWITCH SLIDE</td></tr>
+<tr><td>T1</td><td>BC846</td><td>BC846</td><td>SOT23</td><td>NPN TRANSISTOR</td></tr>
+<tr><td>T2</td><td>BC846</td><td>BC846</td><td>SOT23</td><td>NPN TRANSISTOR</td></tr>
+<tr><td>T3</td><td>BC846</td><td>BC846</td><td>SOT23</td><td>NPN TRANSISTOR</td></tr>
+<tr><td>T4</td><td>BC846</td><td>BC846</td><td>SOT23</td><td>NPN TRANSISTOR</td></tr>
+<tr><td>T5</td><td>BC846</td><td>BC846</td><td>SOT23</td><td>NPN TRANSISTOR</td></tr>
+<tr><td>T6</td><td>BSS138</td><td>NFET-SOT23</td><td>SOT23</td><td></td></tr>
+<tr><td>TX</td><td></td><td>2,54/1,0</td><td>2,54/1,0</td><td>THROUGH-HOLE PAD</td></tr>
+<tr><td>U1</td><td>TDA7267</td><td>TDA7267</td><td>DIP8</td><td>2W MONO AMPLIFIE</td></tr>
+<tr><td>XP1</td><td>IDC10</td><td>IDC10</td><td>BH-10</td><td></td></tr>
+<tr><td>XP2</td><td>WB-02R</td><td>WB-02R</td><td>WB-02R</td><td></td></tr>
+<tr><td>XP3</td><td>53048-02</td><td>53048-02</td><td>53048-02</td><td>CONNECTOR</td></tr>
+<tr><td>XP4</td><td>WB-03R</td><td>WB-03R</td><td>WB-03R</td><td></td></tr>
+</table>
