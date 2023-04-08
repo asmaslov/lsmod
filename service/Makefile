@@ -36,7 +36,7 @@ distro: ui
 	$(PYINSTALLER) -F --paths $(PWD) --icon $(TARGET).ico --windowed --onefile $(TARGET).py
 
 ui: $(TARGET).ui $(TARGET).qrc
-	rm -f ui_$(TARGET).py
+	rm -f ui_$(TARGET).py $(TARGET)_rc.py
 	$(PYUIC) $(TARGET).ui -o ui_$(TARGET).py
 	$(PYRCC) $(TARGET).qrc -o $(TARGET)_rc.py
 
