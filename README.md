@@ -1,4 +1,4 @@
-# Light & Sound Module for Lightsaber
+# Light & Sound Module for The Toy Lightsaber
 
 This is a completely open hardware and software project.  
 The main idea is to create a tiny electronic module that imitates light and sound effects of a Lightsaber.  
@@ -95,7 +95,7 @@ And let the force be with you. And couple of spare batteries, you're gonna need 
 * Battery holders - 2 x 3 AAA? Combined with a speaker? Plug-in block;
 * Motion sensors - on the edge of the board (at the maximum distance from the hand);
 
-### Schematics:
+### Schematics
 * Separate 7805 or other 1.5 IC for the strip;
 * Connector for programmer WB-6;
 * Combined connector "power + speaker";
@@ -109,5 +109,5 @@ And let the force be with you. And couple of spare batteries, you're gonna need 
 
 ## Licenses and Intellectual Property Rights
 Unless otherwise noted, code is licensed under the MIT license (check out LICENSE file).  
-Schematics and design is licensed under [CERN-OHL-P](https://ohwr.org/cern_ohl_p_v2.txt) license.  
+Schematics and design is licensed under the CERN-OHL-P license (check out LICENSE file inside `avr_board` folder).  
 STAR WARS and LIGHTSABER are trademarks of Lucasfilm Entertainment Company Ltd.
